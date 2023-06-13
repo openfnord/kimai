@@ -99,3 +99,14 @@ Kimai is based on modern technologies and frameworks such as [PHP](https://www.p
 [Bootstrap](https://github.com/twbs/bootstrap) and [Tabler](https://tabler.io/),
 and [countless](composer.json) [others](package.json).
 
+### Note:
+
+The source code for the kimai android app is not available anymore, as the app is sold now, which I consider Evil.
+
+So I forked the last version that I could find.
+
+https://github.com/openfnord/kimai-android
+
+Hopefully this app gets further development. 
+
+Maybe it is wise to fork the whole project in order to keep it free as in freedom.
