@@ -17,12 +17,12 @@ use App\Entity\User;
  */
 class SystemConfigurationControllerTest extends ControllerBaseTest
 {
-    public function testIsSecure()
+    public function testIsSecure(): void
     {
         $this->assertUrlIsSecured('/admin/system-config/');
     }
 
-    public function testIsSecureForRole()
+    public function testIsSecureForRole(): void
     {
         $this->assertUrlIsSecuredForRole(User::ROLE_ADMIN, '/admin/system-config/');
     }
@@ -32,7 +32,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         return static::getContainer()->get(SystemConfiguration::class);
     }
 
-    public function testIndexAction()
+    public function testIndexAction(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/');
@@ -55,7 +55,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         }
     }
 
-    public function testSectionAction()
+    public function testSectionAction(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/edit/timesheet');
@@ -91,7 +91,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         ];
     }
 
-    public function testUpdateTimesheetConfig()
+    public function testUpdateTimesheetConfig(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/');
@@ -129,7 +129,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         $this->assertEquals(99, $configService->find('timesheet.active_entries.hard_limit'));
     }
 
-    public function testUpdateLockdownPeriodConfig()
+    public function testUpdateLockdownPeriodConfig(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/');
@@ -164,7 +164,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         $this->assertEquals('+ 12 hours', $configService->find('timesheet.rules.lockdown_grace_period'));
     }
 
-    public function testUpdateTimesheetConfigValidation()
+    public function testUpdateTimesheetConfigValidation(): void
     {
         $this->assertFormHasValidationError(
             User::ROLE_SUPER_ADMIN,
@@ -186,12 +186,11 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
             [
                 '#system_configuration_form_timesheet_configuration_0_value', // mode
                 '#system_configuration_form_timesheet_configuration_6_value', // hard_limit
-            ],
-            true
+            ]
         );
     }
 
-    public function testUpdateCustomerConfig()
+    public function testUpdateCustomerConfig(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/');
@@ -223,7 +222,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         $this->assertEquals('GBP', $configService->find('defaults.customer.currency'));
     }
 
-    public function testUpdateCustomerConfigWithSingleParam()
+    public function testUpdateCustomerConfigWithSingleParam(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/edit/customer');
@@ -246,7 +245,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         $this->assertHasFlashSaveSuccess($client);
     }
 
-    public function testUpdateUserConfig()
+    public function testUpdateUserConfig(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/edit/user');
@@ -278,7 +277,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         $this->assertEquals('ru', $configService->find('defaults.user.language'));
     }
 
-    public function testUpdateCustomerConfigValidation()
+    public function testUpdateCustomerConfigValidation(): void
     {
         $this->assertFormHasValidationError(
             User::ROLE_SUPER_ADMIN,
@@ -297,12 +296,11 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
                 '#system_configuration_form_customer_configuration_0_value',
                 '#system_configuration_form_customer_configuration_1_value',
                 '#system_configuration_form_customer_configuration_2_value',
-            ],
-            true
+            ]
         );
     }
 
-    public function testUpdateThemeConfig()
+    public function testUpdateThemeConfig(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/');
@@ -328,7 +326,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         $this->assertTrue($configService->find('timesheet.markdown_content'));
     }
 
-    public function testUpdateThemeConfigValidation()
+    public function testUpdateThemeConfigValidation(): void
     {
         $this->assertFormHasValidationError(
             User::ROLE_SUPER_ADMIN,
@@ -344,12 +342,11 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
             ],
             [
                 '#system_configuration_form_theme_configuration_1_value',
-            ],
-            true
+            ]
         );
     }
 
-    public function testUpdateCalendarConfig()
+    public function testUpdateCalendarConfig(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/system-config/');
@@ -390,7 +387,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
         $this->assertEquals('21:43', $configService->find('calendar.visibleHours.end'));
     }
 
-    public function testUpdateCalendarConfigValidation()
+    public function testUpdateCalendarConfigValidation(): void
     {
         $this->assertFormHasValidationError(
             User::ROLE_SUPER_ADMIN,
@@ -413,8 +410,7 @@ class SystemConfigurationControllerTest extends ControllerBaseTest
                 '#system_configuration_form_calendar_configuration_3_value',
                 '#system_configuration_form_calendar_configuration_4_value',
                 '#system_configuration_form_calendar_configuration_5_value',
-            ],
-            true
+            ]
         );
     }
 }

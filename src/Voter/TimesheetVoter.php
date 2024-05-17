@@ -11,6 +11,7 @@ namespace App\Voter;
 
 use App\Entity\Timesheet;
 use App\Entity\User;
+use App\Form\Model\MultiUserTimesheet;
 use App\Security\RolePermissionManager;
 use App\Timesheet\LockdownService;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -55,21 +56,26 @@ final class TimesheetVoter extends Voter
     private ?bool $editExported = null;
     private ?\DateTime $now = null;
 
-    public function __construct(private RolePermissionManager $permissionManager, private LockdownService $lockdownService)
+    public function __construct(
+        private readonly RolePermissionManager $permissionManager,
+        private readonly LockdownService $lockdownService
+    )
     {
+    }
+
+    public function supportsAttribute(string $attribute): bool
+    {
+        return \in_array($attribute, self::ALLOWED_ATTRIBUTES, true);
+    }
+
+    public function supportsType(string $subjectType): bool
+    {
+        return str_contains($subjectType, Timesheet::class) || str_contains($subjectType, MultiUserTimesheet::class);
     }
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!($subject instanceof Timesheet)) {
-            return false;
-        }
-
-        if (!\in_array($attribute, self::ALLOWED_ATTRIBUTES)) {
-            return false;
-        }
-
-        return true;
+        return $subject instanceof Timesheet && $this->supportsAttribute($attribute);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -105,7 +111,7 @@ final class TimesheetVoter extends Voter
                 break;
 
             case 'duplicate':
-                if (!$this->canDuplicate($user, $subject)) {
+                if (!$this->canStart($subject)) {
                     return false;
                 }
                 $permission = self::EDIT;
@@ -187,15 +193,6 @@ final class TimesheetVoter extends Voter
             return false;
         }
 
-        if (!$this->isAllowedInLockdown($user, $timesheet)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function canDuplicate(User $user, Timesheet $timesheet): bool
-    {
         if (!$this->isAllowedInLockdown($user, $timesheet)) {
             return false;
         }

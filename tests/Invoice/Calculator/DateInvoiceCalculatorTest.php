@@ -16,6 +16,7 @@ use App\Entity\Project;
 use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Invoice\Calculator\DateInvoiceCalculator;
+use App\Invoice\CalculatorInterface;
 use App\Repository\Query\InvoiceQuery;
 use App\Tests\Invoice\DebugFormatter;
 use App\Tests\Mocks\InvoiceModelFactoryFactory;
@@ -29,13 +30,14 @@ use DateTime;
  */
 class DateInvoiceCalculatorTest extends AbstractCalculatorTest
 {
-    public function testEmptyModel()
+    protected function getCalculator(): CalculatorInterface
     {
-        $this->assertEmptyModel(new DateInvoiceCalculator());
+        return new DateInvoiceCalculator();
     }
 
-    public function testWithMultipleEntries()
+    public function testWithMultipleEntries(): void
     {
+        $date = new DateTime();
         $customer = new Customer('foo');
         $template = new InvoiceTemplate();
         $template->setVat(19);
@@ -84,7 +86,7 @@ class DateInvoiceCalculatorTest extends AbstractCalculatorTest
 
         $timesheet4 = new Timesheet();
         $timesheet4
-            ->setBegin(new DateTime())
+            ->setBegin($date)
             ->setEnd(new DateTime('2018-11-28'))
             ->setDuration(400)
             ->setRate(1947.99)
@@ -107,13 +109,10 @@ class DateInvoiceCalculatorTest extends AbstractCalculatorTest
         $query = new InvoiceQuery();
         $query->setProjects([$project1]);
 
-        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter());
-        $model->setCustomer($customer);
-        $model->setTemplate($template);
+        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter(), $customer, $template, $query);
         $model->addEntries($entries);
-        $model->setQuery($query);
 
-        $sut = new DateInvoiceCalculator();
+        $sut = $this->getCalculator();
         $sut->setModel($model);
 
         $this->assertEquals('date', $sut->getId());
@@ -122,18 +121,20 @@ class DateInvoiceCalculatorTest extends AbstractCalculatorTest
         $this->assertEquals('EUR', $model->getCurrency());
         $this->assertEquals(2521.12, $sut->getSubtotal());
         $this->assertEquals(6600, $sut->getTimeWorked());
-        $this->assertEquals(3, \count($sut->getEntries()));
 
         $entries = $sut->getEntries();
         self::assertCount(3, $entries);
-        $this->assertEquals(378.02, $entries[0]->getRate());
-        $this->assertEquals(195.11, $entries[1]->getRate());
+        $this->assertEquals('2018-11-28', $entries[0]->getBegin()?->format('Y-m-d'));
+        $this->assertEquals('2018-11-29', $entries[1]->getBegin()?->format('Y-m-d'));
+        $this->assertEquals($date->format('Y-m-d'), $entries[2]->getBegin()?->format('Y-m-d'));
+        $this->assertEquals(378.02, $entries[1]->getRate());
+        $this->assertEquals(195.11, $entries[0]->getRate());
         $this->assertEquals(1947.99, $entries[2]->getRate());
         self::assertEquals(2521.12, $entries[0]->getRate() + $entries[1]->getRate() + $entries[2]->getRate());
     }
 
-    public function testDescriptionByTimesheet()
+    public function testDescriptionByTimesheet(): void
     {
-        $this->assertDescription(new DateInvoiceCalculator(), false, false);
+        $this->assertDescription($this->getCalculator(), false, false);
     }
 }

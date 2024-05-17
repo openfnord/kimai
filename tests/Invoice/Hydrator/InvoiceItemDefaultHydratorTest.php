@@ -20,7 +20,7 @@ class InvoiceItemDefaultHydratorTest extends TestCase
 {
     use RendererTestTrait;
 
-    public function testHydrate()
+    public function testHydrate(): void
     {
         $model = $this->getInvoiceModel();
 
@@ -36,7 +36,7 @@ class InvoiceItemDefaultHydratorTest extends TestCase
         $this->assertEntryStructure($result, $metaFields);
     }
 
-    protected function assertEntryStructure(array $model, array $metaFields)
+    public function assertEntryStructure(array $model, array $metaFields): void
     {
         $keys = [
             'entry.row',
@@ -63,6 +63,7 @@ class InvoiceItemDefaultHydratorTest extends TestCase
             'entry.end_time',
             'entry.end_timestamp',
             'entry.date',
+            'entry.date_process',
             'entry.week',
             'entry.weekyear',
             'entry.user_id',

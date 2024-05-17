@@ -17,13 +17,15 @@ use App\Invoice\CalculatorInterface;
  */
 final class DateInvoiceCalculator extends AbstractSumInvoiceCalculator implements CalculatorInterface
 {
-    protected function calculateSumIdentifier(ExportableItem $invoiceItem): string
+    public function getIdentifiers(ExportableItem $invoiceItem): array
     {
         if (null === $invoiceItem->getBegin()) {
             throw new \Exception('Cannot handle invoice items without start date');
         }
 
-        return $invoiceItem->getBegin()->format('Y-m-d');
+        return [
+            $invoiceItem->getBegin()->format('Y-m-d')
+        ];
     }
 
     public function getId(): string

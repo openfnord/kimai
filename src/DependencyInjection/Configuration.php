@@ -11,6 +11,9 @@ namespace App\DependencyInjection;
 
 use App\Entity\Customer;
 use App\Entity\User;
+use App\Form\Helper\ActivityHelper;
+use App\Form\Helper\CustomerHelper;
+use App\Form\Helper\ProjectHelper;
 use App\Repository\InvoiceDocumentRepository;
 use App\Timesheet\Rounding\RoundingInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -105,7 +108,7 @@ final class Configuration implements ConfigurationInterface
         return $node;
     }
 
-    private function getProjectNode()
+    private function getProjectNode(): ArrayNodeDefinition
     {
         $builder = new TreeBuilder('project');
         /** @var ArrayNodeDefinition $node */
@@ -114,8 +117,17 @@ final class Configuration implements ConfigurationInterface
         $node
             ->addDefaultsIfNotSet()
             ->children()
+                ->scalarNode('choice_pattern')
+                    ->defaultValue(ProjectHelper::PATTERN_NAME)
+                ->end()
                 ->booleanNode('copy_teams_on_create')
                     ->defaultValue(false)
+                ->end()
+                ->scalarNode('number_format')
+                    ->defaultValue('{pc,4}')
+                ->end()
+                ->booleanNode('allow_duplicate_number')
+                    ->defaultFalse()
                 ->end()
             ->end()
         ;
@@ -132,8 +144,17 @@ final class Configuration implements ConfigurationInterface
         $node
             ->addDefaultsIfNotSet()
             ->children()
+                ->scalarNode('choice_pattern')
+                    ->defaultValue(ActivityHelper::PATTERN_NAME)
+                ->end()
                 ->booleanNode('allow_inline_create')
                     ->defaultValue(false)
+                ->end()
+                ->scalarNode('number_format')
+                    ->defaultValue('{ac,4}')
+                ->end()
+                ->booleanNode('allow_duplicate_number')
+                    ->defaultFalse()
                 ->end()
             ->end()
         ;
@@ -305,7 +326,7 @@ final class Configuration implements ConfigurationInterface
                             ->defaultValue(0)
                         ->end()
                         ->integerNode('long_running_duration')
-                            ->defaultValue(600)
+                            ->defaultValue(0)
                         ->end()
                         ->booleanNode('require_activity')
                             ->defaultTrue()
@@ -343,7 +364,7 @@ final class Configuration implements ConfigurationInterface
                     ->defaultValue('{Y}/{cy,3}')
                 ->end()
                 ->booleanNode('upload_twig')
-                    ->defaultTrue()
+                    ->defaultFalse()
                 ->end()
             ->end()
         ;
@@ -551,6 +572,9 @@ final class Configuration implements ConfigurationInterface
         $node
             ->addDefaultsIfNotSet()
             ->children()
+                ->scalarNode('choice_pattern')
+                    ->defaultValue(CustomerHelper::PATTERN_NAME)
+                ->end()
                 ->scalarNode('number_format')
                     ->defaultValue('{cc,4}')
                 ->end()
@@ -789,7 +813,9 @@ final class Configuration implements ConfigurationInterface
                     ->defaultValue('Login with SAML')
                 ->end()
                 ->scalarNode('provider')
-                    ->defaultNull()
+                    // the "default" was only added, to prevent support requests by people who did not
+                    // adjust their config between 1.x and 2.0
+                    ->defaultValue('default')
                 ->end()
                 ->arrayNode('roles')
                     ->addDefaultsIfNotSet()

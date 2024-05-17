@@ -17,7 +17,6 @@ use App\Timesheet\DateTimeFactory;
 use App\Validator\ValidationFailedException;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController as BaseAbstractController;
-use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormTypeInterface;
@@ -76,13 +75,13 @@ abstract class AbstractController extends BaseAbstractController implements Serv
 
     /**
      * @template TFormType of FormTypeInterface<TData>
-     * @template TData of mixed
+     * @template TData of array|object
      * @param class-string<TFormType> $type
-     * @param TData|null $data
+     * @param TData $data
      * @param array<mixed> $options
-     * @return FormInterface<TData|null>
+     * @return FormInterface<TData>
      */
-    protected function createFormWithName(string $name, string $type = FormType::class, mixed $data = null, array $options = []): FormInterface
+    protected function createFormWithName(string $name, string $type, mixed $data, array $options = []): FormInterface
     {
         return $this->container->get('form.factory')->createNamed($name, $type, $data, $options);
     }
@@ -122,17 +121,12 @@ abstract class AbstractController extends BaseAbstractController implements Serv
      * Adds an "error" flash message to the stack.
      *
      * @param string $translationKey
-     * @param array<string, string>|string $reason passing an array is deprecated
+     * @param string $reason
      * @return void
      * @throws \Exception
      */
-    protected function flashError(string $translationKey, array|string $reason = ''): void
+    protected function flashError(string $translationKey, string $reason = ''): void
     {
-        if (\is_array($reason)) {
-            @trigger_error('Calling "flashError" with an array $reason is deprecated and will be removed soon. Refactor and pass a string instead.', E_USER_DEPRECATED);
-            $reason = \array_key_exists('%reason%', $reason) ? $reason['%reason%'] : '';
-        }
-
         $this->addFlashTranslated('error', $translationKey, ['%reason%' => $reason]);
     }
 
@@ -165,11 +159,7 @@ abstract class AbstractController extends BaseAbstractController implements Serv
     /**
      * Adds a fully translated (both $message and all keys in $parameter) flash message to the stack.
      *
-     * @param string $type
-     * @param string $message
      * @param array<string, string> $parameter
-     * @return void
-     * @throws \Exception
      */
     private function addFlashTranslated(string $type, string $message, array $parameter = []): void
     {
@@ -189,9 +179,6 @@ abstract class AbstractController extends BaseAbstractController implements Serv
 
     /**
      * Handles exception flash messages for failed update/create actions.
-     * @param \Exception $exception
-     * @param FormInterface $form
-     * @return void
      */
     protected function handleFormUpdateException(\Exception $exception, FormInterface $form): void
     {
@@ -212,7 +199,7 @@ abstract class AbstractController extends BaseAbstractController implements Serv
         }
     }
 
-    protected function logException(\Exception $ex): void
+    protected function logException(\Throwable $ex): void
     {
         $this->container->get('logger')->critical($ex->getMessage());
     }
@@ -268,10 +255,9 @@ abstract class AbstractController extends BaseAbstractController implements Serv
     }
 
     /**
-     * @param FormInterface $form
-     * @param Request $request
+     * Use "performSearch=1" to skip loading session searches.
+     *
      * @param array<string> $filterParams parameter names, which should not be saved (neither session, nor database)
-     * @return bool
      * @throws \Exception
      */
     protected function handleSearch(FormInterface $form, Request $request, array $filterParams = []): bool
@@ -314,7 +300,6 @@ abstract class AbstractController extends BaseAbstractController implements Serv
         }
         $searchName = $this->getSearchName($data);
 
-        /** @var BookmarkRepository $bookmarkRepo */
         $bookmarkRepo = $this->getBookmark();
         $bookmark = $bookmarkRepo->getSearchDefaultOptions($this->getUser(), $searchName);
 

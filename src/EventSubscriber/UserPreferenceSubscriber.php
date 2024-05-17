@@ -22,8 +22,9 @@ use App\Form\Type\InitialViewType;
 use App\Form\Type\SkinType;
 use App\Form\Type\TimezoneType;
 use App\Form\Type\UserLanguageType;
+use App\Form\Type\UserLocaleType;
 use App\Form\Type\YesNoType;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -84,10 +85,15 @@ final class UserPreferenceSubscriber implements EventSubscriberInterface
                 ->setSection('locale')
                 ->setType(TimezoneType::class),
 
-            (new UserPreference(UserPreference::LOCALE, $this->systemConfiguration->getUserDefaultLanguage()))
+            (new UserPreference(UserPreference::LANGUAGE, $this->systemConfiguration->getUserDefaultLanguage()))
                 ->setOrder(250)
                 ->setSection('locale')
                 ->setType(UserLanguageType::class),
+
+            (new UserPreference(UserPreference::LOCALE, $this->systemConfiguration->getUserDefaultLanguage()))
+                ->setOrder(250)
+                ->setSection('locale')
+                ->setType(UserLocaleType::class),
 
             (new UserPreference(UserPreference::FIRST_WEEKDAY, User::DEFAULT_FIRST_WEEKDAY))
                 ->setOrder(300)
@@ -137,7 +143,7 @@ final class UserPreferenceSubscriber implements EventSubscriberInterface
     {
         $user = $event->getUser();
 
-        $event = new UserPreferenceEvent($user, $this->getDefaultPreferences($user));
+        $event = new UserPreferenceEvent($user, $this->getDefaultPreferences($user), $event->isBooting());
         $this->eventDispatcher->dispatch($event);
 
         foreach ($event->getPreferences() as $preference) {

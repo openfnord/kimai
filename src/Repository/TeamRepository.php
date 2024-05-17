@@ -115,11 +115,7 @@ class TeamRepository extends EntityRepository
 
     public function getPagerfantaForQuery(TeamQuery $query): Pagination
     {
-        $paginator = new Pagination($this->getPaginatorForQuery($query));
-        $paginator->setMaxPerPage($query->getPageSize());
-        $paginator->setCurrentPage($query->getPage());
-
-        return $paginator;
+        return new Pagination($this->getPaginatorForQuery($query), $query);
     }
 
     protected function getPaginatorForQuery(TeamQuery $query): PaginatorInterface
@@ -152,18 +148,39 @@ class TeamRepository extends EntityRepository
 
     private function getQueryBuilderForQuery(TeamQuery $query): QueryBuilder
     {
-        $qb = $this->getEntityManager()->createQueryBuilder();
+        $qb = $this->createQueryBuilder('t');
 
-        $qb
-            ->select('t')
-            ->from(Team::class, 't')
-        ;
+        $qb->select('t');
 
         $orderBy = $query->getOrderBy();
         switch ($orderBy) {
             default:
                 $orderBy = 't.' . $orderBy;
                 break;
+        }
+
+        if ($query->hasCustomers()) {
+            $qb->leftJoin('t.customers', 'qCustomers');
+            $qb->orWhere(
+                $qb->expr()->in('qCustomers', ':customers')
+            );
+            $qb->setParameter('customers', $query->getCustomers());
+        }
+
+        if ($query->hasProjects()) {
+            $qb->leftJoin('t.projects', 'qProjects');
+            $qb->orWhere(
+                $qb->expr()->in('qProjects', ':projects')
+            );
+            $qb->setParameter('projects', $query->getProjects());
+        }
+
+        if ($query->hasActivities()) {
+            $qb->leftJoin('t.activities', 'qActivities');
+            $qb->orWhere(
+                $qb->expr()->in('qActivities', ':activities')
+            );
+            $qb->setParameter('activities', $query->getActivities());
         }
 
         if ($query->hasUsers()) {

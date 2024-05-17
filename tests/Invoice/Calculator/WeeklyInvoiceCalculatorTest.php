@@ -16,6 +16,7 @@ use App\Entity\Project;
 use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Invoice\Calculator\WeeklyInvoiceCalculator;
+use App\Invoice\CalculatorInterface;
 use App\Repository\Query\InvoiceQuery;
 use App\Tests\Invoice\DebugFormatter;
 use App\Tests\Mocks\InvoiceModelFactoryFactory;
@@ -29,12 +30,12 @@ use DateTime;
  */
 class WeeklyInvoiceCalculatorTest extends AbstractCalculatorTest
 {
-    public function testEmptyModel()
+    protected function getCalculator(): CalculatorInterface
     {
-        $this->assertEmptyModel(new WeeklyInvoiceCalculator());
+        return new WeeklyInvoiceCalculator();
     }
 
-    public function testWithMultipleEntries()
+    public function testWithMultipleEntries(): void
     {
         $customer = new Customer('foo');
         $template = new InvoiceTemplate();
@@ -110,13 +111,10 @@ class WeeklyInvoiceCalculatorTest extends AbstractCalculatorTest
         $query = new InvoiceQuery();
         $query->setProjects([$project1]);
 
-        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter());
-        $model->setCustomer($customer);
-        $model->setTemplate($template);
+        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter(), $customer, $template, $query);
         $model->addEntries($entries);
-        $model->setQuery($query);
 
-        $sut = new WeeklyInvoiceCalculator();
+        $sut = $this->getCalculator();
         $sut->setModel($model);
 
         $this->assertEquals('weekly', $sut->getId());
@@ -128,13 +126,12 @@ class WeeklyInvoiceCalculatorTest extends AbstractCalculatorTest
 
         $entries = $sut->getEntries();
         self::assertCount(2, $entries);
-        $this->assertEquals(378.02, $entries[0]->getRate());
-        $this->assertEquals(2143.1, $entries[1]->getRate());
-        self::assertEquals(2521.12, $entries[0]->getRate() + $entries[1]->getRate());
+        $this->assertEquals(378.02, $entries[1]->getRate());
+        $this->assertEquals(2143.1, $entries[0]->getRate());
     }
 
-    public function testDescriptionByTimesheet()
+    public function testDescriptionByTimesheet(): void
     {
-        $this->assertDescription(new WeeklyInvoiceCalculator(), false, false);
+        $this->assertDescription($this->getCalculator(), false, false);
     }
 }

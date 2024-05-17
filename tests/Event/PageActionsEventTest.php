@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
  */
 class PageActionsEventTest extends TestCase
 {
-    public function testDefaultValues()
+    public function testDefaultValues(): void
     {
         $user = new User();
         $user->setAlias('foo');
@@ -41,7 +41,7 @@ class PageActionsEventTest extends TestCase
         $this->assertEquals(['hello' => 'world', 'actions' => [], 'view' => 'bar'], $sut->getPayload());
     }
 
-    public function testSetActions()
+    public function testSetActions(): void
     {
         $sut = new PageActionsEvent(new User(), ['hello' => 'world'], 'foo', 'xxx');
         $sut->addAction('foo', ['url' => 'bar']);
@@ -75,7 +75,7 @@ class PageActionsEventTest extends TestCase
         $this->assertNull($sut->getLocale());
     }
 
-    public function testSubmenu()
+    public function testSubmenu(): void
     {
         $sut = new PageActionsEvent(new User(), ['hello' => 'world'], 'foo', 'xxx');
         $this->assertFalse($sut->hasSubmenu('test'));
@@ -86,7 +86,7 @@ class PageActionsEventTest extends TestCase
         $this->assertEquals(2, $sut->countActions('test'));
     }
 
-    public function testAddHelper()
+    public function testAddHelper(): void
     {
         $sut = new PageActionsEvent(new User(), ['hello' => 'world'], 'foo', 'xxx');
 
@@ -96,20 +96,22 @@ class PageActionsEventTest extends TestCase
         $sut->addCreate('foo5', true);
         $sut->addCreate('foo6', false);
         $sut->addQuickExport('foo7');
+        $sut->addEdit('trölölö');
 
         $expected = [
             'divider0' => null,
             'columns' => ['modal' => '#foo2', 'title' => 'modal.columns.title'],
             'create' => ['url' => 'foo5', 'class' => 'modal-ajax-form', 'title' => 'create', 'accesskey' => 'a'],
             'download' => ['url' => 'foo7', 'class' => 'toolbar-action', 'title' => 'export'],
-            'trash' => ['url' => 'foo3', 'class' => 'modal-ajax-form text-red', 'translation_domain' => 'actions'],
+            'edit' => ['url' => 'trölölö', 'class' => 'modal-ajax-form', 'translation_domain' => 'actions', 'title' => 'edit'],
+            'trash' => ['url' => 'foo3', 'class' => 'modal-ajax-form text-red', 'translation_domain' => 'actions', 'title' => 'trash'],
         ];
         $this->assertEquals(\count($expected), $sut->countActions());
 
         $this->assertEquals($expected, $sut->getActions());
     }
 
-    public function testAddOthers()
+    public function testAddOthers(): void
     {
         $sut = new PageActionsEvent(new User(), ['hello' => 'world'], 'foo', 'xxx');
 

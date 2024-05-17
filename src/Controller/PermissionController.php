@@ -16,17 +16,18 @@ use App\Event\PermissionSectionsEvent;
 use App\Event\PermissionsEvent;
 use App\Form\RoleType;
 use App\Model\PermissionSection;
+use App\Repository\Query\UserQuery;
 use App\Repository\RoleRepository;
 use App\Repository\UserRepository;
 use App\Security\RolePermissionManager;
 use App\Security\RoleService;
 use App\User\PermissionService;
 use App\Utils\PageSetup;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -46,7 +47,7 @@ final class PermissionController extends AbstractController
 
     #[Route(path: '', name: 'admin_user_permissions', methods: ['GET', 'POST'])]
     #[IsGranted('role_permissions')]
-    public function permissions(EventDispatcherInterface $dispatcher, CsrfTokenManagerInterface $csrfTokenManager, RoleService $roleService)
+    public function permissions(EventDispatcherInterface $dispatcher, CsrfTokenManagerInterface $csrfTokenManager, RoleService $roleService, UserRepository $userRepository): Response
     {
         $all = $this->roleRepository->findAll();
         $existing = [];
@@ -151,7 +152,10 @@ final class PermissionController extends AbstractController
         $page->setHelp('permissions.html');
         $page->setActionName('user_permissions');
 
+        $users = $userRepository->getUsersForQuery(new UserQuery());
+
         return $this->render('permission/permissions.html.twig', [
+            'users' => $users,
             'page_setup' => $page,
             'token' => $csrfTokenManager->refreshToken(self::TOKEN_NAME)->getValue(),
             'roles' => array_values($roles),

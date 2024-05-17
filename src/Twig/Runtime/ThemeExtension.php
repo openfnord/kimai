@@ -16,8 +16,7 @@ use App\Event\PageActionsEvent;
 use App\Event\ThemeEvent;
 use App\Event\ThemeJavascriptTranslationsEvent;
 use App\Utils\Color;
-use App\Utils\FormFormatConverter;
-use Symfony\Bridge\Twig\AppVariable;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
@@ -25,22 +24,20 @@ use Twig\Extension\RuntimeExtensionInterface;
 
 final class ThemeExtension implements RuntimeExtensionInterface
 {
-    public function __construct(private EventDispatcherInterface $eventDispatcher, private TranslatorInterface $translator, private SystemConfiguration $configuration)
+    public function __construct(private EventDispatcherInterface $eventDispatcher, private TranslatorInterface $translator, private SystemConfiguration $configuration, private Security $security)
     {
     }
 
     /**
      * @param Environment $environment
      * @param string $eventName
-     * @param mixed|null $payload
+     * @param array<string, mixed> $payload
      * @return ThemeEvent
      */
-    public function trigger(Environment $environment, string $eventName, $payload = null): ThemeEvent
+    public function trigger(Environment $environment, string $eventName, array $payload = []): ThemeEvent
     {
-        /** @var AppVariable $app */
-        $app = $environment->getGlobals()['app'];
         /** @var User $user */
-        $user = $app->getUser();
+        $user = $this->security->getUser();
 
         $themeEvent = new ThemeEvent($user, $payload);
 
@@ -112,11 +109,8 @@ final class ThemeExtension implements RuntimeExtensionInterface
         return (new Color())->getRandom($identifier);
     }
 
-    public function getTimePresets(string $timezone, string $format): array
+    public function getTimePresets(string $timezone): array
     {
-        $converter = new FormFormatConverter();
-        $format = $converter->convert($format);
-
         $intervalMinutes = $this->configuration->getTimesheetIncrementMinutes();
 
         if ($intervalMinutes < 5) {
@@ -125,17 +119,15 @@ final class ThemeExtension implements RuntimeExtensionInterface
 
         $maxMinutes = 24 * 60 - $intervalMinutes;
 
-        $date = new \DateTime('now', new \DateTimeZone($timezone));
-        $date->setTime(0, 0, 0);
+        $date = new \DateTimeImmutable('now', new \DateTimeZone($timezone));
+        $date = $date->setTime(0, 0, 0);
 
-        $presets = [
-            $date->format($format)
-        ];
+        $presets = [$date];
 
         for ($minutes = $intervalMinutes; $minutes <= $maxMinutes; $minutes += $intervalMinutes) {
-            $date->modify('+' . $intervalMinutes . ' minutes');
+            $date = $date->modify('+' . $intervalMinutes . ' minutes');
 
-            $presets[] = $date->format($format);
+            $presets[] = $date;
         }
 
         return $presets;

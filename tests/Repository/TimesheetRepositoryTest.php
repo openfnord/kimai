@@ -18,7 +18,7 @@ use App\Repository\ActivityRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\Query\TimesheetQuery;
 use App\Repository\TimesheetRepository;
-use Pagerfanta\Pagerfanta;
+use App\Utils\Pagination;
 
 /**
  * @covers \App\Repository\TimesheetRepository
@@ -26,7 +26,7 @@ use Pagerfanta\Pagerfanta;
  */
 class TimesheetRepositoryTest extends AbstractRepositoryTest
 {
-    public function testResultTypeForQueryState()
+    public function testResultTypeForQueryState(): void
     {
         $em = $this->getEntityManager();
         /** @var TimesheetRepository $repository */
@@ -35,13 +35,13 @@ class TimesheetRepositoryTest extends AbstractRepositoryTest
         $query = new TimesheetQuery();
 
         $result = $repository->getPagerfantaForQuery($query);
-        $this->assertInstanceOf(Pagerfanta::class, $result);
+        $this->assertInstanceOf(Pagination::class, $result);
 
         $result = $repository->getTimesheetsForQuery($query);
         $this->assertIsArray($result);
     }
 
-    public function testSave()
+    public function testSave(): void
     {
         $em = $this->getEntityManager();
         /** @var ActivityRepository $activityRepository */
@@ -68,7 +68,7 @@ class TimesheetRepositoryTest extends AbstractRepositoryTest
         $this->assertNotNull($timesheet->getId());
     }
 
-    public function testSaveWithTags()
+    public function testSaveWithTags(): void
     {
         $em = $this->getEntityManager();
         /** @var ActivityRepository $activityRepository */

@@ -16,25 +16,21 @@ use App\Export\Spreadsheet\Writer\XlsxWriter;
 use App\Model\MonthlyStatistic;
 use App\Reporting\YearlyUserList\YearlyUserList;
 use App\Reporting\YearlyUserList\YearlyUserListForm;
+use App\Repository\Query\TimesheetStatisticQuery;
 use App\Repository\Query\UserQuery;
+use App\Repository\Query\VisibilityInterface;
 use App\Repository\UserRepository;
 use App\Timesheet\TimesheetStatisticService;
-use Exception;
 use PhpOffice\PhpSpreadsheet\Reader\Html;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(path: '/reporting/users')]
 #[IsGranted('report:other')]
 final class ReportUsersYearController extends AbstractController
 {
-    /**
-     * @param Request $request
-     * @return Response
-     * @throws Exception
-     */
     #[Route(path: '/year', name: 'report_yearly_users', methods: ['GET', 'POST'])]
     public function report(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository): Response
     {
@@ -44,17 +40,12 @@ final class ReportUsersYearController extends AbstractController
         );
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     * @throws Exception
-     */
     #[Route(path: '/year_export', name: 'report_yearly_users_export', methods: ['GET', 'POST'])]
     public function export(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository): Response
     {
         $data = $this->getData($request, $systemConfiguration, $statisticService, $userRepository);
 
-        $content = $this->container->get('twig')->render('reporting/report_user_list_monthly_export.html.twig', $data);
+        $content = $this->renderView('reporting/report_user_list_monthly_export.html.twig', $data);
 
         $reader = new Html();
         $spreadsheet = $reader->loadFromString($content);
@@ -86,6 +77,7 @@ final class ReportUsersYearController extends AbstractController
         $form->submit($request->query->all(), false);
 
         $query = new UserQuery();
+        $query->setVisibility(VisibilityInterface::SHOW_BOTH);
         $query->setSystemAccount(false);
         $query->setCurrentUser($currentUser);
 
@@ -116,7 +108,9 @@ final class ReportUsersYearController extends AbstractController
         $hasData = true;
 
         if (!empty($allUsers)) {
-            $monthStats = $statisticService->getMonthlyStats($start, $end, $allUsers);
+            $statsQuery = new TimesheetStatisticQuery($start, $end, $allUsers);
+            $statsQuery->setProject($values->getProject());
+            $monthStats = $statisticService->getMonthlyStats($statsQuery);
         }
 
         if (empty($monthStats)) {

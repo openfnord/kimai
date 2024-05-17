@@ -17,6 +17,7 @@ use App\Tests\Mocks\SystemConfigurationFactory;
 use App\Twig\Runtime\ThemeExtension;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\AppVariable;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -57,11 +58,14 @@ class ThemeEventExtensionTest extends TestCase
         $translator = $this->getMockBuilder(TranslatorInterface::class)->getMock();
         $translator->method('trans')->willReturn('foo');
 
+        $security = $this->getMockBuilder(Security::class)->disableOriginalConstructor()->getMock();
+        $security->method('getUser')->willReturn(null);
+
         $configs = [];
         $loader = new TestConfigLoader($configs);
         $configuration = SystemConfigurationFactory::create($loader, $this->getDefaultSettings());
 
-        return new ThemeExtension($dispatcher, $translator, $configuration);
+        return new ThemeExtension($dispatcher, $translator, $configuration, $security);
     }
 
     protected function getEnvironment(): Environment
@@ -83,21 +87,21 @@ class ThemeEventExtensionTest extends TestCase
         return $environment;
     }
 
-    public function testTrigger()
+    public function testTrigger(): void
     {
         $sut = $this->getSut();
         $event = $sut->trigger($this->getEnvironment(), 'foo', []);
         self::assertInstanceOf(ThemeEvent::class, $event);
     }
 
-    public function testTriggerWithoutListener()
+    public function testTriggerWithoutListener(): void
     {
         $sut = $this->getSut(false);
         $event = $sut->trigger($this->getEnvironment(), 'foo', []);
         self::assertInstanceOf(ThemeEvent::class, $event);
     }
 
-    public function testJavascriptTranslations()
+    public function testJavascriptTranslations(): void
     {
         $sut = $this->getSut();
         $values = $sut->getJavascriptTranslations();
@@ -141,13 +145,13 @@ class ThemeEventExtensionTest extends TestCase
     /**
      * @dataProvider getProgressbarColors
      */
-    public function testProgressbarClass(string $expected, int $percent, ?bool $reverseColors = false)
+    public function testProgressbarClass(string $expected, int $percent, ?bool $reverseColors = false): void
     {
         $sut = $this->getSut(false);
         self::assertEquals($expected, $sut->getProgressbarClass($percent, $reverseColors));
     }
 
-    public function testGetTitle()
+    public function testGetTitle(): void
     {
         $sut = $this->getSut(false);
         $this->assertEquals('Kimai – foo', $sut->generateTitle());
@@ -156,7 +160,7 @@ class ThemeEventExtensionTest extends TestCase
         $this->assertEquals('Kimai | foo', $sut->generateTitle(null, ' | '));
     }
 
-    public function testGetBrandedTitle()
+    public function testGetBrandedTitle(): void
     {
         $sut = $this->getSut(false, 'MyCompany');
         $this->assertEquals('Kimai – foo', $sut->generateTitle());

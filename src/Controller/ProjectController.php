@@ -36,16 +36,18 @@ use App\Repository\ProjectRateRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\Query\ActivityQuery;
 use App\Repository\Query\ProjectQuery;
+use App\Repository\Query\TeamQuery;
+use App\Repository\Query\TimesheetQuery;
 use App\Repository\TeamRepository;
 use App\Utils\Context;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -54,7 +56,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * Controller used to manage projects.
  */
 #[Route(path: '/admin/project')]
-#[IsGranted(new Expression("is_granted('view_project') or is_granted('view_teamlead_project') or is_granted('view_team_project')"))]
 final class ProjectController extends AbstractController
 {
     public function __construct(private ProjectRepository $repository, private SystemConfiguration $configuration, private EventDispatcherInterface $dispatcher, private ProjectService $projectService)
@@ -63,6 +64,7 @@ final class ProjectController extends AbstractController
 
     #[Route(path: '/', defaults: ['page' => 1], name: 'admin_project', methods: ['GET'])]
     #[Route(path: '/page/{page}', requirements: ['page' => '[1-9]\d*'], name: 'admin_project_paginated', methods: ['GET'])]
+    #[IsGranted(new Expression("is_granted('listing', 'project')"))]
     public function indexAction(int $page, Request $request): Response
     {
         $query = new ProjectQuery();
@@ -86,6 +88,7 @@ final class ProjectController extends AbstractController
         $table->addColumn('name', ['class' => 'alwaysVisible']);
         $table->addColumn('customer', ['class' => 'd-none']);
         $table->addColumn('comment', ['class' => 'd-none', 'title' => 'description']);
+        $table->addColumn('number', ['class' => 'd-none w-min', 'title' => 'project_number']);
         $table->addColumn('orderNumber', ['class' => 'd-none']);
         $table->addColumn('orderDate', ['class' => 'd-none']);
         $table->addColumn('project_start', ['class' => 'd-none']);
@@ -334,6 +337,15 @@ final class ProjectController extends AbstractController
         $rates = [];
         $now = $this->getDateTimeFactory()->createDateTime();
 
+        $exportUrl = null;
+        $invoiceUrl = null;
+        if ($this->isGranted('create_export') && $project->getCustomer() !== null) {
+            $exportUrl = $this->generateUrl('export', ['customers[]' => $project->getCustomer()->getId(), 'projects[]' => $project->getId(), 'daterange' => '', 'exported' => TimesheetQuery::STATE_NOT_EXPORTED, 'preview' => true, 'billable' => true]);
+        }
+        if ($this->isGranted('view_invoice') && $project->getCustomer() !== null) {
+            $invoiceUrl = $this->generateUrl('invoice', ['customers[]' => $project->getCustomer()->getId(), 'projects[]' => $project->getId(), 'daterange' => '', 'exported' => TimesheetQuery::STATE_NOT_EXPORTED, 'billable' => true]);
+        }
+
         if ($this->isGranted('edit', $project)) {
             if ($this->isGranted('create_team')) {
                 $defaultTeam = $teamRepository->findOneBy(['name' => $project->getName()]);
@@ -351,7 +363,9 @@ final class ProjectController extends AbstractController
         }
 
         if ($this->isGranted('permissions', $project) || $this->isGranted('details', $project) || $this->isGranted('view_team')) {
-            $teams = $project->getTeams();
+            $query = new TeamQuery();
+            $query->addProject($project);
+            $teams = $teamRepository->getTeamsForQuery($query);
         }
 
         // additional boxes by plugins
@@ -375,7 +389,9 @@ final class ProjectController extends AbstractController
             'teams' => $teams,
             'rates' => $rates,
             'now' => $now,
-            'boxes' => $boxes
+            'boxes' => $boxes,
+            'export_url' => $exportUrl,
+            'invoice_url' => $invoiceUrl,
         ]);
     }
 
@@ -435,7 +451,11 @@ final class ProjectController extends AbstractController
                 $this->projectService->updateProject($project);
                 $this->flashSuccess('action.update.success');
 
-                return $this->redirectToRoute('project_details', ['id' => $project->getId()]);
+                if ($this->isGranted('view', $project)) {
+                    return $this->redirectToRoute('project_details', ['id' => $project->getId()]);
+                } else {
+                    return new Response();
+                }
             } catch (\Exception $ex) {
                 $this->flashUpdateException($ex);
             }
@@ -512,6 +532,7 @@ final class ProjectController extends AbstractController
     }
 
     #[Route(path: '/export', name: 'project_export', methods: ['GET'])]
+    #[IsGranted(new Expression("is_granted('listing', 'project')"))]
     public function exportAction(Request $request, EntityWithMetaFieldsExporter $exporter): Response
     {
         $query = new ProjectQuery();

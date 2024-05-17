@@ -17,25 +17,24 @@ use App\Event\EmailPasswordResetEvent;
 use App\Form\PasswordResetForm;
 use App\User\LoginManager;
 use App\User\UserService;
-use DateTime;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route(path: '/resetting')]
 final class PasswordResetController extends AbstractController
 {
     public function __construct(
-        private EventDispatcherInterface $eventDispatcher,
-        private UserService $userService,
-        private SystemConfiguration $configuration
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly UserService $userService,
+        private readonly SystemConfiguration $configuration
     ) {
     }
 
@@ -63,9 +62,13 @@ final class PasswordResetController extends AbstractController
         }
 
         $username = $request->request->get('username');
+        if (!\is_string($username) || trim($username) === '') {
+            throw $this->createAccessDeniedException('Username cannot be empty');
+        }
+
         $user = $this->userService->findUserByUsernameOrEmail($username);
 
-        if (null !== $user && !$user->isPasswordRequestNonExpired($this->configuration->getPasswordResetRetryLifetime())) {
+        if (!$user->isPasswordRequestNonExpired($this->configuration->getPasswordResetRetryLifetime())) {
             if (!$user->isInternalUser()) {
                 throw $this->createAccessDeniedException(
                     sprintf('The user "%s" tried to reset the password, but it is registered as "%s" auth-type.', $user->getUserIdentifier(), $user->getAuth())
@@ -83,8 +86,8 @@ final class PasswordResetController extends AbstractController
             // this will finally send the email
             $this->eventDispatcher->dispatch(new EmailEvent($event->getEmail()));
 
-            $user->setPasswordRequestedAt(new DateTime());
-            $this->userService->updateUser($user);
+            $user->markPasswordRequested();
+            $this->userService->saveUser($user);
         }
 
         return $this->redirectToRoute('resetting_check_email', ['username' => $username]);
@@ -108,7 +111,7 @@ final class PasswordResetController extends AbstractController
         }
 
         return $this->render('security/password-reset/check_email.html.twig', [
-            'tokenLifetime' => ceil($this->configuration->getPasswordResetRetryLifetime() / 3600),
+            'tokenLifetime' => $this->configuration->getPasswordResetRetryLifetime(),
         ]);
     }
 
@@ -129,6 +132,8 @@ final class PasswordResetController extends AbstractController
         }
 
         if (!$user->isPasswordRequestNonExpired($this->configuration->getPasswordResetTokenLifetime())) {
+            $this->flashWarning('This link has already expired');
+
             return $this->redirectToRoute('resetting_request');
         }
 
@@ -138,11 +143,10 @@ final class PasswordResetController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user->setConfirmationToken(null);
-            $user->setPasswordRequestedAt(null);
+            $user->markPasswordResetted();
             $user->setEnabled(true);
 
-            $this->userService->updateUser($user);
+            $this->userService->saveUser($user);
 
             $response = $this->redirectToRoute('my_profile');
             $loginManager->logInUser($user, $response);

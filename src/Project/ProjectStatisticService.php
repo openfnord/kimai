@@ -34,9 +34,10 @@ use App\Repository\ProjectRepository;
 use App\Repository\TimesheetRepository;
 use App\Repository\UserRepository;
 use App\Timesheet\DateTimeFactory;
-use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @final
@@ -44,24 +45,19 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class ProjectStatisticService
 {
     public function __construct(
-        private ProjectRepository $projectRepository,
-        private ActivityRepository $activityRepository,
-        private TimesheetRepository $timesheetRepository,
-        private EventDispatcherInterface $dispatcher,
-        private UserRepository $userRepository
+        private readonly ProjectRepository $projectRepository,
+        private readonly ActivityRepository $activityRepository,
+        private readonly TimesheetRepository $timesheetRepository,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly UserRepository $userRepository
     )
     {
     }
 
     /**
-     * WARNING: this method does not respect the budget type. Your results will always be wither the "full lifetime data" or the "selected date-range".
-     *
-     * @param Project $project
-     * @param DateTime|null $begin
-     * @param DateTime|null $end
-     * @return ProjectStatistic
+     * WARNING: this method does not respect the budget type. Your results will always be with the "full lifetime data" or the "selected date-range".
      */
-    public function getProjectStatistics(Project $project, ?DateTime $begin = null, ?DateTime $end = null): ProjectStatistic
+    public function getProjectStatistics(Project $project, ?DateTimeInterface $begin = null, ?DateTimeInterface $end = null): ProjectStatistic
     {
         $statistics = $this->getBudgetStatistic([$project], $begin, $end);
         $event = new ProjectStatisticEvent($project, array_pop($statistics), $begin, $end);
@@ -71,14 +67,13 @@ class ProjectStatisticService
     }
 
     /**
-     * @param ProjectInactiveQuery $query
      * @return Project[]
      */
     public function findInactiveProjects(ProjectInactiveQuery $query): array
     {
         $user = $query->getUser();
-        $lastChange = clone $query->getLastChange();
-        $now = new DateTime('now', $lastChange->getTimezone());
+        $lastChange = DateTimeImmutable::createFromInterface($query->getLastChange());
+        $now = new DateTimeImmutable('now', $lastChange->getTimezone());
 
         $qb2 = $this->projectRepository->createQueryBuilder('t1');
         $qb2
@@ -97,12 +92,19 @@ class ProjectStatisticService
             ->andWhere($qb->expr()->not($qb->expr()->exists($qb2)))
             ->andWhere(
                 $qb->expr()->orX(
+                    $qb->expr()->isNull('p.start'),
+                    $qb->expr()->lte('p.start', ':project_start')
+                )
+            )
+            ->setParameter('project_start', $now, Types::DATETIME_IMMUTABLE)
+            ->andWhere(
+                $qb->expr()->orX(
                     $qb->expr()->isNull('p.end'),
                     $qb->expr()->gte('p.end', ':project_end')
                 )
             )
-            ->setParameter('project_end', $now, Types::DATETIME_MUTABLE)
-            ->setParameter('begin', $lastChange, Types::DATETIME_MUTABLE)
+            ->setParameter('project_end', $now, Types::DATETIME_IMMUTABLE)
+            ->setParameter('begin', $lastChange, Types::DATETIME_IMMUTABLE)
         ;
 
         $this->projectRepository->addPermissionCriteria($qb, $user);
@@ -118,7 +120,6 @@ class ProjectStatisticService
     }
 
     /**
-     * @param ProjectDateRangeQuery $query
      * @return Project[]
      */
     public function findProjectsForDateRange(ProjectDateRangeQuery $query, DateRange $dateRange): array
@@ -201,7 +202,7 @@ class ProjectStatisticService
         return $projects;
     }
 
-    public function getBudgetStatisticModel(Project $project, DateTime $today): ProjectBudgetStatisticModel
+    public function getBudgetStatisticModel(Project $project, DateTimeInterface $today): ProjectBudgetStatisticModel
     {
         $stats = new ProjectBudgetStatisticModel($project);
         $stats->setStatisticTotal($this->getProjectStatistics($project));
@@ -222,10 +223,9 @@ class ProjectStatisticService
 
     /**
      * @param Project[] $projects
-     * @param DateTime $today
      * @return ProjectBudgetStatisticModel[]
      */
-    public function getBudgetStatisticModelForProjects(array $projects, DateTime $today): array
+    public function getBudgetStatisticModelForProjects(array $projects, DateTimeInterface $today): array
     {
         $models = [];
         $monthly = [];
@@ -275,12 +275,9 @@ class ProjectStatisticService
 
     /**
      * @param Project[] $projects
-     * @param DateTime $begin
-     * @param DateTime $end
-     * @param DateTime|null $totalsEnd
      * @return ProjectBudgetStatisticModel[]
      */
-    public function getBudgetStatisticModelForProjectsByDateRange(array $projects, DateTime $begin, DateTime $end, ?DateTime $totalsEnd = null): array
+    public function getBudgetStatisticModelForProjectsByDateRange(array $projects, DateTimeInterface $begin, DateTimeInterface $end, ?DateTimeInterface $totalsEnd = null): array
     {
         $models = [];
 
@@ -306,11 +303,9 @@ class ProjectStatisticService
 
     /**
      * @param Project[] $projects
-     * @param DateTime|null $begin
-     * @param DateTime|null $end
      * @return array<int, ProjectStatistic>
      */
-    public function getBudgetStatistic(array $projects, ?DateTime $begin = null, ?DateTime $end = null): array
+    public function getBudgetStatistic(array $projects, ?DateTimeInterface $begin = null, ?DateTimeInterface $end = null): array
     {
         $statistics = [];
         foreach ($projects as $project) {
@@ -704,15 +699,13 @@ class ProjectStatisticService
     }
 
     /**
-     * @param User $user
      * @param Project[] $projects
-     * @param DateTime $today
      * @return ProjectViewModel[]
      */
-    public function getProjectView(User $user, array $projects, DateTime $today): array
+    public function getProjectView(User $user, array $projects, DateTimeInterface $today): array
     {
         $factory = DateTimeFactory::createByUser($user);
-        $today = clone $today;
+        $today = DateTimeImmutable::createFromInterface($today);
 
         $startOfWeek = $factory->getStartOfWeek($today);
         $endOfWeek = $factory->getEndOfWeek($today);
@@ -720,13 +713,11 @@ class ProjectStatisticService
         $endMonth = (clone $startOfWeek)->modify('last day of this month');
 
         $projectViews = [];
-        foreach ($projects as $project) {
-            $projectViews[$project->getId()] = new ProjectViewModel($project);
-        }
 
         $budgetStats = $this->getBudgetStatisticModelForProjects($projects, $today);
         foreach ($budgetStats as $model) {
-            $projectViews[$model->getProject()->getId()]->setBudgetStatisticModel($model);
+            $project = $model->getProject();
+            $projectViews[$project->getId()] = new ProjectViewModel($model);
         }
 
         $projectIds = array_keys($projectViews);
@@ -734,22 +725,18 @@ class ProjectStatisticService
         $tplQb = $this->timesheetRepository->createQueryBuilder('t');
         $tplQb
             ->select('IDENTITY(t.project) AS id')
-            ->addSelect('COUNT(t.id) as amount')
             ->addSelect('COALESCE(SUM(t.duration), 0) AS duration')
             ->addSelect('COALESCE(SUM(t.rate), 0) AS rate')
             ->andWhere($tplQb->expr()->in('t.project', ':project'))
             ->groupBy('t.project')
-            ->setParameter('project', array_values($projectIds))
+            ->setParameter('project', $projectIds)
         ;
 
+        // find the most recent timesheet for each project
         $qb = clone $tplQb;
         $qb->addSelect('MAX(t.date) as lastRecord');
-
         $result = $qb->getQuery()->getScalarResult();
         foreach ($result as $row) {
-            $projectViews[$row['id']]->setDurationTotal($row['duration']);
-            $projectViews[$row['id']]->setRateTotal($row['rate']);
-            $projectViews[$row['id']]->setTimesheetCounter($row['amount']);
             if ($row['lastRecord'] !== null) {
                 // might be the wrong timezone
                 $projectViews[$row['id']]->setLastRecord($factory->createDateTime($row['lastRecord']));
@@ -792,34 +779,6 @@ class ProjectStatisticService
         $result = $qb->getQuery()->getScalarResult();
         foreach ($result as $row) {
             $projectViews[$row['id']]->setDurationMonth($row['duration']);
-        }
-
-        $qb = clone $tplQb;
-        $qb
-            ->addSelect('t.exported')
-            ->addSelect('t.billable')
-            ->addGroupBy('t.exported')
-            ->addGroupBy('t.billable')
-        ;
-        $result = $qb->getQuery()->getScalarResult();
-        foreach ($result as $row) {
-            /** @var ProjectViewModel $view */
-            $view = $projectViews[$row['id']];
-            if ($row['billable'] === 1 && $row['exported'] === 1) {
-                $view->setBillableDuration($view->getBillableDuration() + $row['duration']);
-                $view->setBillableRate($view->getBillableRate() + $row['rate']);
-            } elseif ($row['billable'] === 1 && $row['exported'] === 0) {
-                $view->setBillableDuration($view->getBillableDuration() + $row['duration']);
-                $view->setBillableRate($view->getBillableRate() + $row['rate']);
-                $view->setNotExportedDuration($view->getNotExportedDuration() + $row['duration']);
-                $view->setNotExportedRate($view->getNotExportedRate() + $row['rate']);
-                $view->setNotBilledDuration($view->getNotBilledDuration() + $row['duration']);
-                $view->setNotBilledRate($view->getNotBilledRate() + $row['rate']);
-            } elseif ($row['billable'] === 0 && $row['exported'] === 0) {
-                $view->setNotExportedDuration($view->getNotExportedDuration() + $row['duration']);
-                $view->setNotExportedRate($view->getNotExportedRate() + $row['rate']);
-            }
-            // the last possible case $row['billable'] === 0 && $row['exported'] === 1 is extremely unlikely and not used
         }
 
         return array_values($projectViews);

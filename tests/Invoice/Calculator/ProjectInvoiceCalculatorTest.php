@@ -16,6 +16,7 @@ use App\Entity\Project;
 use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Invoice\Calculator\ProjectInvoiceCalculator;
+use App\Invoice\CalculatorInterface;
 use App\Repository\Query\InvoiceQuery;
 use App\Tests\Invoice\DebugFormatter;
 use App\Tests\Mocks\InvoiceModelFactoryFactory;
@@ -29,12 +30,12 @@ use DateTime;
  */
 class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
 {
-    public function testEmptyModel()
+    protected function getCalculator(): CalculatorInterface
     {
-        $this->assertEmptyModel(new ProjectInvoiceCalculator());
+        return new ProjectInvoiceCalculator();
     }
 
-    public function testWithMultipleEntries()
+    public function testWithMultipleEntries(): void
     {
         $customer = new Customer('foo');
         $template = new InvoiceTemplate();
@@ -54,7 +55,7 @@ class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
 
         $timesheet = new Timesheet();
         $timesheet
-            ->setBegin(new DateTime())
+            ->setBegin(new DateTime('2018-11-29'))
             ->setEnd(new DateTime())
             ->setDuration(3600)
             ->setRate(293.27)
@@ -64,7 +65,7 @@ class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
 
         $timesheet2 = new Timesheet();
         $timesheet2
-            ->setBegin(new DateTime())
+            ->setBegin(new DateTime('2018-11-28'))
             ->setEnd(new DateTime())
             ->setDuration(400)
             ->setRate(84.75)
@@ -74,7 +75,7 @@ class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
 
         $timesheet3 = new Timesheet();
         $timesheet3
-            ->setBegin(new DateTime())
+            ->setBegin(new DateTime('2018-11-29'))
             ->setEnd(new DateTime())
             ->setDuration(1800)
             ->setRate(111.11)
@@ -84,7 +85,7 @@ class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
 
         $timesheet4 = new Timesheet();
         $timesheet4
-            ->setBegin(new DateTime())
+            ->setBegin(new DateTime('2018-11-08'))
             ->setEnd(new DateTime())
             ->setDuration(400)
             ->setRate(1947.99)
@@ -94,7 +95,7 @@ class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
 
         $timesheet5 = new Timesheet();
         $timesheet5
-            ->setBegin(new DateTime())
+            ->setBegin(new DateTime('2018-11-28'))
             ->setEnd(new DateTime())
             ->setDuration(400)
             ->setRate(84)
@@ -107,13 +108,10 @@ class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
         $query = new InvoiceQuery();
         $query->setProjects([$project1]);
 
-        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter());
-        $model->setCustomer($customer);
-        $model->setTemplate($template);
+        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter(), $customer, $template, $query);
         $model->addEntries($entries);
-        $model->setQuery($query);
 
-        $sut = new ProjectInvoiceCalculator();
+        $sut = $this->getCalculator();
         $sut->setModel($model);
 
         $this->assertEquals('project', $sut->getId());
@@ -122,18 +120,22 @@ class ProjectInvoiceCalculatorTest extends AbstractCalculatorTest
         $this->assertEquals('EUR', $model->getCurrency());
         $this->assertEquals(2521.12, $sut->getSubtotal());
         $this->assertEquals(6600, $sut->getTimeWorked());
-        $this->assertEquals(3, \count($sut->getEntries()));
 
         $entries = $sut->getEntries();
         self::assertCount(3, $entries);
-        $this->assertEquals(404.38, $entries[0]->getRate());
-        $this->assertEquals(2032.74, $entries[1]->getRate());
-        $this->assertEquals(84, $entries[2]->getRate());
+
+        $this->assertEquals('2018-11-08', $entries[0]->getBegin()?->format('Y-m-d'));
+        $this->assertEquals('2018-11-28', $entries[1]->getBegin()?->format('Y-m-d'));
+        $this->assertEquals('2018-11-29', $entries[2]->getBegin()?->format('Y-m-d'));
+
+        $this->assertEquals(404.38, $entries[2]->getRate());
+        $this->assertEquals(2032.74, $entries[0]->getRate());
+        $this->assertEquals(84, $entries[1]->getRate());
         self::assertEquals(2521.12, $entries[0]->getRate() + $entries[1]->getRate() + $entries[2]->getRate());
     }
 
-    public function testDescriptionByProject()
+    public function testDescriptionByProject(): void
     {
-        $this->assertDescription(new ProjectInvoiceCalculator(), true, false);
+        $this->assertDescription($this->getCalculator(), true, false);
     }
 }

@@ -31,23 +31,24 @@ use App\Form\Type\ActivityType;
 use App\Repository\ActivityRateRepository;
 use App\Repository\ActivityRepository;
 use App\Repository\Query\ActivityQuery;
+use App\Repository\Query\TeamQuery;
+use App\Repository\Query\TimesheetQuery;
 use App\Repository\TeamRepository;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
 use Exception;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
  * Controller used to manage activities.
  */
 #[Route(path: '/admin/activity')]
-#[IsGranted(new Expression("is_granted('view_activity') or is_granted('view_teamlead_activity') or is_granted('view_team_activity')"))]
 final class ActivityController extends AbstractController
 {
     public function __construct(private ActivityRepository $repository, private SystemConfiguration $configuration, private EventDispatcherInterface $dispatcher, private ActivityService $activityService)
@@ -56,6 +57,7 @@ final class ActivityController extends AbstractController
 
     #[Route(path: '/', defaults: ['page' => 1], name: 'admin_activity', methods: ['GET'])]
     #[Route(path: '/page/{page}', requirements: ['page' => '[1-9]\d*'], name: 'admin_activity_paginated', methods: ['GET'])]
+    #[IsGranted(new Expression("is_granted('listing', 'activity')"))]
     public function indexAction(int $page, Request $request): Response
     {
         $query = new ActivityQuery();
@@ -79,6 +81,7 @@ final class ActivityController extends AbstractController
         $table->addColumn('name', ['class' => 'alwaysVisible']);
         $table->addColumn('project', ['class' => 'd-none']);
         $table->addColumn('comment', ['class' => 'd-none', 'title' => 'description']);
+        $table->addColumn('number', ['class' => 'd-none w-min', 'title' => 'activity_number']);
 
         foreach ($metaColumns as $metaColumn) {
             $table->addColumn('mf_' . $metaColumn->getName(), ['title' => $metaColumn->getLabel(), 'class' => 'd-none', 'orderBy' => false, 'data' => $metaColumn]);
@@ -135,6 +138,22 @@ final class ActivityController extends AbstractController
         $defaultTeam = null;
         $now = $this->getDateTimeFactory()->createDateTime();
 
+        $exportUrl = null;
+        $invoiceUrl = null;
+        $params = ['customers[]' => '', 'projects[]' => '', 'activities[]' => $activity->getId(), 'daterange' => '', 'exported' => TimesheetQuery::STATE_NOT_EXPORTED, 'billable' => true];
+        if ($activity->getProject() !== null) {
+            $params['projects[]'] = $activity->getProject()->getId();
+            if ($activity->getProject()->getCustomer() !== null) {
+                $params['customers[]'] = $activity->getProject()->getCustomer()->getId();
+            }
+        }
+        if ($this->isGranted('create_export')) {
+            $exportUrl = $this->generateUrl('export', array_merge($params, ['preview' => true]));
+        }
+        if ($this->isGranted('view_invoice')) {
+            $invoiceUrl = $this->generateUrl('invoice', $params);
+        }
+
         if ($this->isGranted('edit', $activity)) {
             if ($this->isGranted('create_team')) {
                 $defaultTeam = $teamRepository->findOneBy(['name' => $activity->getName()]);
@@ -147,7 +166,9 @@ final class ActivityController extends AbstractController
         }
 
         if ($this->isGranted('permissions', $activity) || $this->isGranted('details', $activity) || $this->isGranted('view_team')) {
-            $teams = $activity->getTeams();
+            $query = new TeamQuery();
+            $query->addActivity($activity);
+            $teams = $teamRepository->getTeamsForQuery($query);
         }
 
         // additional boxes by plugins
@@ -168,7 +189,9 @@ final class ActivityController extends AbstractController
             'team' => $defaultTeam,
             'teams' => $teams,
             'now' => $now,
-            'boxes' => $boxes
+            'boxes' => $boxes,
+            'export_url' => $exportUrl,
+            'invoice_url' => $invoiceUrl,
         ]);
     }
 
@@ -329,7 +352,11 @@ final class ActivityController extends AbstractController
                 $this->activityService->updateActivity($activity);
                 $this->flashSuccess('action.update.success');
 
-                return $this->redirectToRoute('activity_details', ['id' => $activity->getId()]);
+                if ($this->isGranted('view', $activity)) {
+                    return $this->redirectToRoute('activity_details', ['id' => $activity->getId()]);
+                } else {
+                    return new Response();
+                }
             } catch (Exception $ex) {
                 $this->flashUpdateException($ex);
             }
@@ -389,6 +416,7 @@ final class ActivityController extends AbstractController
     }
 
     #[Route(path: '/export', name: 'activity_export', methods: ['GET'])]
+    #[IsGranted(new Expression("is_granted('listing', 'activity')"))]
     public function exportAction(Request $request, EntityWithMetaFieldsExporter $exporter): Response
     {
         $query = new ActivityQuery();

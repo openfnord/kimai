@@ -2,10 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en" target-language="de" datatype="plaintext" original="messages.en.xlf">
     <body>
-      <!-- Global template keys -->
-      <trans-unit id="N7mikjJ" resname="time_tracking">
-        <source>time_tracking</source>
-        <target>Zeiterfassung</target>
+      <trans-unit id="N7mikjJ" resname="time_tracking" xml:space="preserve">
+        <source>Time Tracking</source>
+        <target state="translated">Zeiterfassung</target>
       </trans-unit>
       <trans-unit id="inmIkP6" resname="yes">
         <source>yes</source>
@@ -35,9 +34,9 @@
         <source>confirm.delete</source>
         <target>Wollen Sie das wirklich löschen?</target>
       </trans-unit>
-      <trans-unit id="vDd3alC" resname="admin_entity.delete_confirm">
+      <trans-unit id="vDd3alC" resname="admin_entity.delete_confirm" approved="yes">
         <source>admin_entity.delete_confirm</source>
-        <target>Diese Daten werden ebenfalls mit gelöscht! Alternativ können Sie einen Eintrag auswählen, auf den alle existierenden Daten umgebucht werden:</target>
+        <target state="final">Diese Daten werden ebenfalls mit gelöscht! Alternativ können Sie einen Eintrag auswählen, auf welchen alle existierenden Daten übertragen werden:</target>
       </trans-unit>
       <trans-unit id="COyxNde" resname="delete.not_in_use">
         <source>delete.not_in_use</source>
@@ -58,6 +57,10 @@
       <trans-unit id="JBkykGe" resname="search">
         <source>search</source>
         <target>Suchen</target>
+      </trans-unit>
+      <trans-unit id="op76XPd" resname="search_filter">
+        <source>Search filter</source>
+        <target>Suchfilter</target>
       </trans-unit>
       <trans-unit id="8W_TZI0" resname="searchTerm">
         <source>searchTerm</source>
@@ -156,9 +159,9 @@
         <source>registration.check_email</source>
         <target>Eine E-Mail wurde an %email% gesendet. Sie enthält einen Link, den Sie anklicken müssen, um Ihr Benutzerkonto zu bestätigen.</target>
       </trans-unit>
-      <trans-unit id="_cY.wHP" resname="resetting.check_email">
-        <source>resetting.check_email</source>
-        <target>Eine E-Mail wurde verschickt. Sie beinhaltet einen Link zum Zurücksetzen des Passwortes. Hinweis: Ein neues Passwort kann nur alle %tokenLifetime% Stunden beantragt werden. Eventuell wurde diese E-Mail als Spam markiert, wenn sie nicht angekommen ist.</target>
+      <trans-unit id="_cY.wHP" resname="resetting.check_email" xml:space="preserve" approved="yes">
+        <source>An email has been sent with a link to reset your password. Note: You can only request a new password once every %tokenLifetime% hours. If you don't receive the email, please check your spam folder or try again.</source>
+        <target state="final">Eine E-Mail mit einem Link zum Zurücksetzen des Passworts wurde an Sie gesendet. Hinweis: Ein neues Passwort kann nur alle %tokenLifetime% Stunden angefordert werden. Wenn Sie die E-Mail nicht erhalten haben, überprüfen Sie bitte Ihren Spam-Ordner oder versuchen Sie es erneut.</target>
       </trans-unit>
       <trans-unit id="fQ3Prt4" resname="security.unlock.title">
         <source>security.unlock.title</source>
@@ -303,9 +306,9 @@
         <source>username</source>
         <target>Benutzer</target>
       </trans-unit>
-      <trans-unit id="yQRveje" resname="description">
-        <source>description</source>
-        <target>Beschreibung</target>
+      <trans-unit id="yQRveje" resname="description" approved="yes">
+        <source>Description</source>
+        <target state="final">Beschreibung</target>
       </trans-unit>
       <trans-unit id="OJ.wI1U" resname="invoiceText">
         <source>invoiceText</source>
@@ -523,13 +526,13 @@
         <source>color</source>
         <target>Farbe</target>
       </trans-unit>
-      <trans-unit id="tl01EdS" resname="replaceTags">
-        <source>replaceTags</source>
-        <target>Schlagworte ersetzen</target>
+      <trans-unit id="erN3h3b" resname="replace">
+        <source>replace</source>
+        <target>Ersetzen</target>
       </trans-unit>
-      <trans-unit id="ICpl9sx" resname="appendTags">
-        <source>appendTags</source>
-        <target>Schlagworte hinzufügen</target>
+      <trans-unit id="rlJLVNm" resname="append">
+        <source>append</source>
+        <target>Hinzufügen</target>
       </trans-unit>
       <!-- Column modal -->
       <trans-unit id="UbnqJLn" resname="modal.columns.title">
@@ -615,13 +618,13 @@
         <source>evaluation</source>
         <target>Auswertung</target>
       </trans-unit>
-      <trans-unit id="4lrfIsZ" resname="complete_month">
-        <source>complete_month</source>
-        <target>Monat abschliessen</target>
+      <trans-unit id="4lrfIsZ" resname="complete_month" xml:space="preserve" approved="yes">
+        <source>Complete month</source>
+        <target state="final">Monat abschliessen</target>
       </trans-unit>
       <trans-unit id="W8XQTkJ" resname="complete_month.help">
         <source>complete_month.help</source>
-        <target>Sobald der Monat abgeschlossen ist, kann der Benutzer für diesen Zeitraum keine Zeiten mehr anlegen oder bearbeiten.</target>
+        <target>Dies wird alle Tage des Jahres vor dem gewählten Datum abschliessen. Der Benutzer wird für den abgeschlossenen Zeitraum keine Zeiten mehr anlegen oder bearbeiten können.</target>
       </trans-unit>
       <trans-unit id="eWmotjb" resname="completed_month_pdf">
         <source>completed_month_pdf</source>
@@ -644,12 +647,8 @@
         <target>Arbeitszeitkonto</target>
       </trans-unit>
       <trans-unit id="1btzNDa" resname="work_times_should">
-        <source>work_times_should</source>
-        <target>Soll-Stunden</target>
-      </trans-unit>
-      <trans-unit id="PE2iiaW" resname="work_times_should.help">
-        <source>work_times_should.help</source>
-        <target>Die hier konfigurierten Werte werden zur Berechnung des Stundenkontos verwendet.</target>
+        <source>Expected number of hours</source>
+        <target>Erwartete Stundenzahl</target>
       </trans-unit>
       <trans-unit id="s9NPI3v" resname="work_times_should.none_configured">
         <source>work_times_should.none_configured</source>
@@ -686,6 +685,10 @@
       <trans-unit id="gcFtM3o" resname="holiday">
         <source>holiday</source>
         <target>Urlaub</target>
+      </trans-unit>
+      <trans-unit id="XE01Ar1" resname="parental">
+        <source>parental</source>
+        <target>Elternzeit</target>
       </trans-unit>
       <trans-unit id="MQKiG33" resname="profile.preferences">
         <source>profile.preferences</source>
@@ -758,6 +761,14 @@
       <trans-unit id="TBWoUYf" resname="project_end">
         <source>project_end</source>
         <target>Projekt Ende</target>
+      </trans-unit>
+      <trans-unit id="tfOjLNp" resname="project_number">
+        <source>Project number</source>
+        <target>Projektnummer</target>
+      </trans-unit>
+      <trans-unit id="8JEDuyx" resname="activity_number">
+        <source>Activity number</source>
+        <target>Tätigkeitsnummer</target>
       </trans-unit>
       <!-- Customer -->
       <trans-unit id="EohvnQA" resname="number">
@@ -908,9 +919,9 @@
         <source>stats.workingTimeFinancialYear</source>
         <target>Geschäftsjahr</target>
       </trans-unit>
-      <trans-unit id="BXBFJP8" resname="stats.workingTime">
-        <source>stats.workingTime</source>
-        <target>Arbeitszeit</target>
+      <trans-unit id="BXBFJP8" resname="stats.workingTime" xml:space="preserve" approved="yes">
+        <source>Working hours</source>
+        <target state="final">Arbeitszeit</target>
       </trans-unit>
       <trans-unit id="pX_3dNm" resname="stats.revenue">
         <source>stats.revenue</source>
@@ -1133,9 +1144,9 @@
         <source>help.invoiceTemplate</source>
         <target>Die Rechnung wird mit dieser Vorlage generiert.</target>
       </trans-unit>
-      <trans-unit id="GxuKjNb" resname="help.invoiceTemplate_customer">
+      <trans-unit id="GxuKjNb" resname="help.invoiceTemplate_customer" approved="yes">
         <source>help.invoiceTemplate_customer</source>
-        <target>Rechnungen für diesen Kunden werden standardmäßig mit dieser Vorlage generiert. Sie kann bei Bedarf während der Rechnungserstellung geändert werden.</target>
+        <target state="final">Rechnungen für diesen Kunden werden standardmäßig mit dieser Vorlage generiert. Sie kann bei Bedarf während der Rechnungserstellung geändert werden.</target>
       </trans-unit>
       <trans-unit id="ohNu8DK" resname="due_days">
         <source>due_days</source>
@@ -1261,6 +1272,14 @@
         <source>status.closed</source>
         <target>Erledigt</target>
       </trans-unit>
+      <trans-unit id="opDmYAa" resname="status.approved">
+        <source>status.approved</source>
+        <target>Genehmigt</target>
+      </trans-unit>
+      <trans-unit id="Na24cyT" resname="status.requested">
+        <source>status.requested</source>
+        <target>Beantragt</target>
+      </trans-unit>
       <trans-unit id="crrlEUA" resname="preview.skipped_rows">
         <source>preview.skipped_rows</source>
         <target>Überspringe Vorschau von %rows% weiteren Zeilen …</target>
@@ -1317,7 +1336,11 @@
       </trans-unit>
       <trans-unit id="dTHY7Mw" resname="timesheet.start">
         <source>timesheet.start</source>
-        <target>Neue Zeitmessung starten</target>
+        <target>Zeiterfassung starten</target>
+      </trans-unit>
+      <trans-unit id="mR_Y5Mv" resname="timesheet.stop">
+        <source>timesheet.stop</source>
+        <target>Zeiterfassung stoppen</target>
       </trans-unit>
       <!-- TOOLBARS -->
       <trans-unit id="igCkqAP" resname="pageSize">
@@ -1383,6 +1406,14 @@
       <trans-unit id="9Wt8Pp_" resname="help.batch_meta_fields">
         <source>help.batch_meta_fields</source>
         <target>Felder die aktualisiert werden sollen, müssen zunächst durch einen Klick auf die zugehörige Checkbox freigeschaltet werden.</target>
+      </trans-unit>
+      <trans-unit id="f1Cgptu" resname="batch_table_checkbox">
+        <source>batch_table_checkbox</source>
+        <target>Eintrag zur Batch-Update-Liste hinzufügen</target>
+      </trans-unit>
+      <trans-unit id="ekN4GLW" resname="batch_table_checkbox_all">
+        <source>batch_table_checkbox_all</source>
+        <target>Alle Einträge für Batch-Update-Liste auswählen</target>
       </trans-unit>
       <trans-unit id="L27KvC9" resname="includeNoWork">
         <source>includeNoWork</source>
@@ -1483,15 +1514,11 @@
       </trans-unit>
       <trans-unit id="JSBReoa" resname="api_password.intro">
         <source>api_password.intro</source>
-        <target state="translated">Das API Passwort dient zur Kommunikation zwischen Kimai und von Ihnen genutzten Apps</target>
+        <target state="translated">Hier verwalten Sie Ihre API-Tokens, welche zur Authentifizierung Ihrer Anwendung gegenüber Kimai dienen.</target>
       </trans-unit>
       <trans-unit id="QT8.BCN" resname="api_password.missing_title">
         <source>api_password.missing_title</source>
         <target>API kann nicht genutzt werden</target>
-      </trans-unit>
-      <trans-unit id="fxFzCHd" resname="api_password.missing_description">
-        <source>api_password.missing_description</source>
-        <target>Sie haben noch kein API Passwort hinterlegt. Aus Sicherheitsgründen ist die Nutzung der API bis zur Hinterlegung eines Passworts für Sie nicht nutzbar.</target>
       </trans-unit>
       <trans-unit id="wYcx0So" resname="search.no_results">
         <source>search.no_results</source>
@@ -1517,9 +1544,17 @@
         <source>Deactivated</source>
         <target>Deaktiviert</target>
       </trans-unit>
+      <trans-unit id="WwesQPU" resname="deactivate">
+        <source>Deactivate</source>
+        <target>Deaktivieren</target>
+      </trans-unit>
       <trans-unit id="3WHV.yf" resname="activated">
         <source>Activated</source>
         <target>Aktiviert</target>
+      </trans-unit>
+      <trans-unit id="IAx_YiA" resname="activate">
+        <source>Activate</source>
+        <target>Aktivieren</target>
       </trans-unit>
       <trans-unit id="3Clo55j" resname="about.title">
         <source>about.title</source>
@@ -1527,11 +1562,15 @@
       </trans-unit>
       <trans-unit id="i_XOmN4" resname="help_locales">
         <source>help_locales</source>
-        <target>Unterstützte Sprachen mit Formatierungsregeln</target>
+        <target>Hier finden Sie Beispiele für die Formatierungsregeln der unterstützten Sprachen</target>
+      </trans-unit>
+      <trans-unit id="d9m85KE" resname="locale" xml:space="preserve" approved="yes">
+        <source>Time, date and currency format</source>
+        <target state="final">Zeit-, Datums- und Währungsformat</target>
       </trans-unit>
       <trans-unit id="JmkKf48" resname="user.language.help">
         <source>user.language.help</source>
-        <target state="translated">Diese Einstellung ist neben der Übersetzung der Oberfläche ebenso zuständig für die Zeit-, Datums-, und Währungsformate.</target>
+        <target state="translated">Diese Einstellung ist für die Übersetzung der Software zuständig</target>
       </trans-unit>
       <trans-unit id="ulgdXdi" resname="hour_24">
         <source>hour_24</source>
@@ -1565,6 +1604,10 @@
         <source>absence</source>
         <target>Abwesenheit</target>
       </trans-unit>
+      <trans-unit id="YTzKpcP" resname="Absence calendar">
+        <source>Absence calendar</source>
+        <target>Abwesenheitskalender</target>
+      </trans-unit>
       <trans-unit id="4PMHpIp" resname="time_off">
         <source>time_off</source>
         <target>Freizeitausgleich</target>
@@ -1572,6 +1615,162 @@
       <trans-unit id="N6juwc4" resname="default">
         <source>default</source>
         <target>Standard</target>
+      </trans-unit>
+      <trans-unit id="_WlU8Fp" resname="sickness">
+        <source>sickness</source>
+        <target>Krankheit</target>
+      </trans-unit>
+      <trans-unit id="Nw2x5hI" resname="sickness_child">
+        <source>sickness_child</source>
+        <target>Krankheit eines Kindes</target>
+      </trans-unit>
+      <trans-unit id="2SmKENG" resname="other">
+        <source>other</source>
+        <target>Andere</target>
+      </trans-unit>
+      <trans-unit id="csAXaBa" resname="button.request">
+        <source>button.request</source>
+        <target>Einreichen</target>
+      </trans-unit>
+      <trans-unit id="Od3xvQK" resname="button.report">
+        <source>button.report</source>
+        <target>Melden</target>
+      </trans-unit>
+      <trans-unit id="YDrWFFP" resname="sickness.intro">
+        <source>sickness.intro</source>
+        <target>Krankheit, Arztbesuch, Pflege naher Angehöriger etc.</target>
+      </trans-unit>
+      <trans-unit id="yJg6P3m" resname="holiday.intro">
+        <source>holiday.intro</source>
+        <target>Sie haben bisher %used% von Ihren verfügbaren %days% Urlaubstagen genommen.</target>
+      </trans-unit>
+      <trans-unit id="DA1.Ln_" resname="time_off.intro">
+        <source>time_off.intro</source>
+        <target>Ihr Stundenkonto weist einen Stand von %hours% Stunden auf.</target>
+      </trans-unit>
+      <trans-unit id="YPO294a" resname="absence_other.intro">
+        <source>absence_other.intro</source>
+        <target>Familiäre Ereignisse, Umzug, Wetterchaos etc.</target>
+      </trans-unit>
+      <trans-unit id="TTnaBm4" resname="day_full">
+        <source>day_full</source>
+        <target>Ganzer Tag</target>
+      </trans-unit>
+      <trans-unit id="Eml59KV" resname="day_half">
+        <source>day_half</source>
+        <target>Halber Tag</target>
+      </trans-unit>
+      <trans-unit id="CDTC1gc" resname="supervisor">
+        <source>supervisor</source>
+        <target>Vorgesetzter</target>
+      </trans-unit>
+      <trans-unit id=".wmq_rT" resname="force_password_change">
+        <source>force_password_change</source>
+        <target>Neues Passwort anfordern</target>
+      </trans-unit>
+      <trans-unit id="0bKwA0k" resname="force_password_change_help">
+        <source>force_password_change_help</source>
+        <target state="translated">Bei der nächsten Anmeldung muss der Benutzer ein neues Passwort hinterlegen.</target>
+      </trans-unit>
+      <trans-unit id="vURcRit" resname="overview">
+        <source>Overview</source>
+        <target>Übersicht</target>
+      </trans-unit>
+      <trans-unit id="0xFBb6O" resname="Expenses">
+        <source>Expenses</source>
+        <target>Ausgaben</target>
+      </trans-unit>
+      <trans-unit id="KSwG8AR" resname="Category">
+        <source>Category</source>
+        <target>Kategorie</target>
+      </trans-unit>
+      <trans-unit id="uLHYlMa" resname="Categories">
+        <source>Categories</source>
+        <target>Kategorien</target>
+      </trans-unit>
+      <trans-unit id="7Sycs4M" resname="Importer" xml:space="preserve" approved="yes">
+        <source>Importer</source>
+        <target state="final">Importer</target>
+      </trans-unit>
+      <trans-unit id="J6EJUj9" resname="Meta fields">
+        <source>Meta fields</source>
+        <target>Eigene Felder</target>
+      </trans-unit>
+      <trans-unit id="JmpBuQ1" resname="Translations">
+        <source>Translations</source>
+        <target>Übersetzungen</target>
+      </trans-unit>
+      <trans-unit id="b712axp" resname="Translation">
+        <source>Translation</source>
+        <target>Übersetzung</target>
+      </trans-unit>
+      <trans-unit id="Vp7xjKh" resname="Audit logs">
+        <source>Audit logs</source>
+        <target>Audit-Logs</target>
+      </trans-unit>
+      <trans-unit id="YRRgZCe" resname="Custom content">
+        <source>Custom content</source>
+        <target>Eigene Inhalte</target>
+      </trans-unit>
+      <trans-unit id="q1EATp1" resname="days">
+        <source>days</source>
+        <target>Tage</target>
+      </trans-unit>
+      <trans-unit id="Ga4bvUX" resname="unpaid_vacation">
+        <source>unpaid_vacation</source>
+        <target>Unbezahlter Urlaub</target>
+      </trans-unit>
+      <trans-unit id="q59lI2y" resname="user_identifier">
+        <source>user_identifier</source>
+        <target>Benutzer ID</target>
+      </trans-unit>
+      <trans-unit id="uqv2Lrv" resname="user_identifier.help">
+        <source>user_identifier.help</source>
+        <target>Die eindeutige Benutzerkennung wird zur Authentifizierung und bei Exporten verwendet</target>
+      </trans-unit>
+      <trans-unit id="EGpYQvx" resname="help">
+        <source>help</source>
+        <target>Dokumentation</target>
+      </trans-unit>
+      <trans-unit id="oYYDCG5" resname="support" approved="yes">
+        <source>Support</source>
+        <target state="final">Support</target>
+      </trans-unit>
+      <trans-unit id="mz4ieCN" resname="donate">
+        <source>donate</source>
+        <target>Spende</target>
+      </trans-unit>
+      <trans-unit id="cR5DD88" resname="invoice_number_generator.date">
+        <source>invoice_number_generator.date</source>
+        <target>Datum</target>
+      </trans-unit>
+      <trans-unit id="Qh1X4Vu" resname="invoice_number_generator.default">
+        <source>invoice_number_generator.default</source>
+        <target>Konfiguriertes Format</target>
+      </trans-unit>
+      <trans-unit id="UI6nPeP" resname="invoice_number_generator">
+        <source>invoice_number_generator</source>
+        <target>Rechnungsnummern-Generator</target>
+      </trans-unit>
+      <trans-unit id="O5KpOtm" resname="absence_comment_mandatory">
+        <source>absence_comment_mandatory</source>
+        <target>Abwesenheit: Kommentar ist Pflichtfeld</target>
+      </trans-unit>
+      <trans-unit id="q4ooRfF" resname="expires">
+        <source>Expiry date</source>
+        <target>Ablaufdatum</target>
+      </trans-unit>
+      <trans-unit id="rkCw7Ml" resname="last_usage">
+        <source>Last usage</source>
+        <target>Letzte Nutzung</target>
+      </trans-unit>
+      <trans-unit id="Z9IIn_b" resname="api_token_hidden">
+        <source>api_token_hidden</source>
+        <target>Dies ist das einzige Mal, dass der Token angezeigt wird! Bewahren Sie ihn gut auf und vergewissern Sie sich, dass Sie ihn notiert haben, bevor Sie dieses Fenster schließen.</target>
+      </trans-unit>
+      <trans-unit id="TCr2ArH" resname="api_password_deprecated">
+        <source>api_password_deprecated</source>
+        <target>API Passwörter sind veraltet: bitte nutzen Sie stattdessen API-Tokens.</target>
       </trans-unit>
     </body>
   </file>

@@ -18,17 +18,27 @@ use App\Invoice\InvoiceItem;
  */
 final class ProjectInvoiceCalculator extends AbstractSumInvoiceCalculator implements CalculatorInterface
 {
-    protected function calculateSumIdentifier(ExportableItem $invoiceItem): string
+    public function getIdentifiers(ExportableItem $invoiceItem): array
     {
-        if (null === $invoiceItem->getProject()->getId()) {
+        if ($invoiceItem->getProject() === null) {
+            throw new \Exception('Cannot handle invoice items without project');
+        }
+
+        if ($invoiceItem->getProject()->getId() === null) {
             throw new \Exception('Cannot handle un-persisted projects');
         }
 
-        return (string) $invoiceItem->getProject()->getId();
+        return [
+            $invoiceItem->getProject()->getId()
+        ];
     }
 
     protected function mergeSumInvoiceItem(InvoiceItem $invoiceItem, ExportableItem $entry): void
     {
+        if ($entry->getProject() === null) {
+            return;
+        }
+
         if ($entry->getProject()->getInvoiceText() !== null) {
             $invoiceItem->setDescription($entry->getProject()->getInvoiceText());
         } else {

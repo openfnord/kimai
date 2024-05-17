@@ -35,6 +35,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 /**
  * @extends \Doctrine\ORM\EntityRepository<User>
  * @template-implements PasswordUpgraderInterface<User>
+ * @template-implements UserProviderInterface<User>
  */
 class UserRepository extends EntityRepository implements UserLoaderInterface, UserProviderInterface, PasswordUpgraderInterface
 {
@@ -52,7 +53,7 @@ class UserRepository extends EntityRepository implements UserLoaderInterface, Us
      * @throws ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function saveUser(User $user)
+    public function saveUser(User $user): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->persist($user);
@@ -61,7 +62,11 @@ class UserRepository extends EntityRepository implements UserLoaderInterface, Us
 
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
-        if (!($user instanceof User)) {
+        if (!($user instanceof User) || !$user->isInternalUser()) {
+            return;
+        }
+
+        if ($user->getPassword() === $newHashedPassword) {
             return;
         }
 
@@ -179,35 +184,15 @@ class UserRepository extends EntityRepository implements UserLoaderInterface, Us
     {
         $qb = $this->createQueryBuilder('u');
 
-        $or = $qb->expr()->orX();
-
         if ($query->isShowVisible()) {
-            $or->add($qb->expr()->eq('u.enabled', ':enabled'));
+            $qb->andWhere($qb->expr()->eq('u.enabled', ':enabled'));
             $qb->setParameter('enabled', true, ParameterType::BOOLEAN);
-        }
-
-        $includeAlways = $query->getUsersAlwaysIncluded();
-        if (!empty($includeAlways)) {
-            $or->add($qb->expr()->in('u', ':users'));
-            $qb->setParameter('users', $includeAlways);
-        }
-
-        if ($or->count() > 0) {
-            $qb->andWhere($or);
-        }
-
-        if (\count($query->getUsersToIgnore()) > 0) {
-            $ids = array_map(function (User $user) {
-                return $user->getId();
-            }, $query->getUsersToIgnore());
-
-            $qb->andWhere($qb->expr()->notIn('u.id', $ids));
         }
 
         $qb->andWhere($qb->expr()->eq('u.systemAccount', ':system'));
         $qb->setParameter('system', false, Types::BOOLEAN);
-
-        $qb->orderBy('u.username', 'ASC');
+        $qb->addSelect("COALESCE(NULLIF(u.alias, ''), u.username) as HIDDEN userOrder");
+        $qb->orderBy('userOrder', 'ASC');
 
         $this->addPermissionCriteria($qb, $query->getUser(), $query->getTeams());
 
@@ -306,10 +291,6 @@ class UserRepository extends EntityRepository implements UserLoaderInterface, Us
 
         foreach ($query->getOrderGroups() as $orderBy => $order) {
             switch ($orderBy) {
-                case 'user':
-                    $qb->addSelect('COALESCE(u.alias, u.username) as HIDDEN userOrder');
-                    $orderBy = 'userOrder';
-                    break;
                 default:
                     $orderBy = 'u.' . $orderBy;
                     break;
@@ -393,11 +374,7 @@ class UserRepository extends EntityRepository implements UserLoaderInterface, Us
 
     public function getPagerfantaForQuery(UserQuery $query): Pagination
     {
-        $paginator = new Pagination($this->getPaginatorForQuery($query));
-        $paginator->setMaxPerPage($query->getPageSize());
-        $paginator->setCurrentPage($query->getPage());
-
-        return $paginator;
+        return new Pagination($this->getPaginatorForQuery($query), $query);
     }
 
     public function countUsersForQuery(UserQuery $query): int
@@ -424,7 +401,7 @@ class UserRepository extends EntityRepository implements UserLoaderInterface, Us
      * @param UserQuery $query
      * @return User[]
      */
-    public function getUsersForQuery(UserQuery $query): iterable
+    public function getUsersForQuery(UserQuery $query): array
     {
         $qb = $this->getQueryBuilderForQuery($query);
 
@@ -435,8 +412,9 @@ class UserRepository extends EntityRepository implements UserLoaderInterface, Us
      * @param QueryBuilder $qb
      * @return User[]
      */
-    protected function getHydratedResultsByQuery(QueryBuilder $qb): iterable
+    protected function getHydratedResultsByQuery(QueryBuilder $qb): array
     {
+        /** @var array<User> $results */
         $results = $qb->getQuery()->getResult();
 
         $loader = new UserLoader($qb->getEntityManager());

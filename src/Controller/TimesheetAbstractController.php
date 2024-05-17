@@ -33,7 +33,7 @@ use App\Timesheet\TimesheetService;
 use App\Timesheet\TrackingMode\TrackingModeInterface;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -88,12 +88,12 @@ abstract class TimesheetAbstractController extends AbstractController
 
         if ($canSeeRate) {
             $table->addColumn('hourlyRate', ['class' => 'text-end d-none text-nowrap']);
-            $table->addColumn('internalRate', ['class' => 'text-end text-nowrap d-none d-md-table-cell']);
+            $table->addColumn('internalRate', ['class' => 'text-end text-nowrap d-none d-xxl-table-cell']);
             $table->addColumn('rate', ['class' => 'text-end text-nowrap']);
         }
 
         $table->addColumn('customer', ['class' => 'd-none d-md-table-cell']);
-        $table->addColumn('project', ['class' => 'd-none d-lg-table-cell']);
+        $table->addColumn('project', ['class' => 'd-none d-xl-table-cell']);
         $table->addColumn('activity', ['class' => 'd-none d-xl-table-cell']);
         $table->addColumn('description', ['class' => 'd-none']);
         $table->addColumn('tags', ['class' => 'd-none badges', 'orderBy' => false]);
@@ -103,7 +103,7 @@ abstract class TimesheetAbstractController extends AbstractController
         }
 
         if ($canSeeUsername) {
-            $table->addColumn('username', ['class' => 'd-none d-sm-table-cell', 'orderBy' => false]);
+            $table->addColumn('username', ['class' => 'd-none d-md-table-cell', 'orderBy' => false]);
         }
 
         $table->addColumn('billable', ['class' => 'text-center d-none w-min', 'orderBy' => false]);
@@ -334,6 +334,13 @@ abstract class TimesheetAbstractController extends AbstractController
             $execute = false;
             /** @var Timesheet $timesheet */
             foreach ($timesheets as $timesheet) {
+                if ($dto->isReplaceDescription()) {
+                    $timesheet->setDescription($dto->getDescription());
+                    $execute = true;
+                } elseif($dto->getDescription() !== null && $dto->getDescription() !== '') {
+                    $timesheet->setDescription($timesheet->getDescription() . PHP_EOL . $dto->getDescription());
+                    $execute = true;
+                }
                 if ($dto->isReplaceTags()) {
                     foreach ($timesheet->getTags() as $tag) {
                         $timesheet->removeTag($tag);
@@ -418,7 +425,7 @@ abstract class TimesheetAbstractController extends AbstractController
         ]);
     }
 
-    protected function multiDelete(Request $request)
+    protected function multiDelete(Request $request): Response
     {
         $form = $this->getMultiUpdateActionForm();
         $form->handleRequest($request);
@@ -446,7 +453,7 @@ abstract class TimesheetAbstractController extends AbstractController
         return $this->redirectToRoute($this->getTimesheetRoute());
     }
 
-    protected function prepareQuery(TimesheetQuery $query)
+    protected function prepareQuery(TimesheetQuery $query): void
     {
         $query->setUser($this->getUser());
     }

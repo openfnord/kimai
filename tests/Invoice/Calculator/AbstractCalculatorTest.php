@@ -16,6 +16,7 @@ use App\Entity\Project;
 use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Invoice\CalculatorInterface;
+use App\Invoice\InvoiceModel;
 use App\Repository\Query\InvoiceQuery;
 use App\Tests\Invoice\DebugFormatter;
 use App\Tests\Mocks\InvoiceModelFactoryFactory;
@@ -23,7 +24,18 @@ use PHPUnit\Framework\TestCase;
 
 abstract class AbstractCalculatorTest extends TestCase
 {
-    protected function assertEmptyModel(CalculatorInterface $sut)
+    abstract protected function getCalculator(): CalculatorInterface;
+
+    public function testCalculatorInterface(): void
+    {
+        $sut = $this->getCalculator();
+
+        self::assertLessThanOrEqual(20, \strlen($sut->getId()));
+
+        $this->assertEmptyModel($sut);
+    }
+
+    private function assertEmptyModel(CalculatorInterface $sut): void
     {
         $model = $this->getEmptyModel();
         $this->assertEquals('EUR', $model->getCurrency());
@@ -38,21 +50,16 @@ abstract class AbstractCalculatorTest extends TestCase
         $this->assertEquals(0, $sut->getTax());
     }
 
-    protected function getEmptyModel()
+    private function getEmptyModel(): InvoiceModel
     {
         $customer = new Customer('foo');
         $template = new InvoiceTemplate();
         $query = new InvoiceQuery();
 
-        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter());
-        $model->setCustomer($customer);
-        $model->setTemplate($template);
-        $model->setQuery($query);
-
-        return $model;
+        return (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter(), $customer, $template, $query);
     }
 
-    protected function assertDescription(CalculatorInterface $sut, $addProject = false, $addActivity = false)
+    protected function assertDescription(CalculatorInterface $sut, $addProject = false, $addActivity = false): void
     {
         $customer = new Customer('foo');
         $template = new InvoiceTemplate();
@@ -88,11 +95,8 @@ abstract class AbstractCalculatorTest extends TestCase
             ->setActivity($activity)
             ->setProject($project);
 
-        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter());
-        $model->setCustomer($customer);
-        $model->setTemplate($template);
+        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel(new DebugFormatter(), $customer, $template, $query);
         $model->addEntries([$timesheet]);
-        $model->setQuery($query);
 
         $sut->setModel($model);
         $this->assertEquals(1, \count($sut->getEntries()));

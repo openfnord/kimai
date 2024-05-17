@@ -2,11 +2,8 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en" target-language="da" datatype="plaintext" original="messages.en.xlf">
     <body>
-      <!--
-              Global template keys
-            -->
-      <trans-unit id="N7mikjJ" resname="time_tracking">
-        <source>time_tracking</source>
+      <trans-unit id="N7mikjJ" resname="time_tracking" xml:space="preserve">
+        <source>Time Tracking</source>
         <target state="translated">Tidsregistrering</target>
       </trans-unit>
       <trans-unit id="inmIkP6" resname="yes">
@@ -190,8 +187,8 @@
         <target>Brugernavn</target>
       </trans-unit>
       <trans-unit id="yQRveje" resname="description">
-        <source>description</source>
-        <target>Beskrivelse</target>
+        <source>Description</source>
+        <target state="translated">Beskrivelse</target>
       </trans-unit>
       <trans-unit id="gqNTf.D" resname="name">
         <source>name</source>
@@ -349,13 +346,13 @@
         <source>color</source>
         <target>Farve</target>
       </trans-unit>
-      <trans-unit id="tl01EdS" resname="replaceTags">
-        <source>replaceTags</source>
-        <target>Erstat etiketter</target>
+      <trans-unit id="erN3h3b" resname="replace">
+        <source>replace</source>
+        <target>Erstat</target>
       </trans-unit>
-      <trans-unit id="ICpl9sx" resname="appendTags">
-        <source>appendTags</source>
-        <target>Tilføj etiketter</target>
+      <trans-unit id="rlJLVNm" resname="append">
+        <source>append</source>
+        <target>Tilføj</target>
       </trans-unit>
       <!--
               User profile
@@ -813,7 +810,7 @@
       </trans-unit>
       <trans-unit id="dTHY7Mw" resname="timesheet.start">
         <source>timesheet.start</source>
-        <target>Opret ny tidsregistrering</target>
+        <target state="needs-translation">Opret ny tidsregistrering</target>
       </trans-unit>
       <!--
               TOOLBARS
@@ -918,9 +915,9 @@
         <source>registration.check_email</source>
         <target>En email er blevet sendt til %email%. Den indeholder et aktiveringslink du skal klikke på for at aktivere din konto.</target>
       </trans-unit>
-      <trans-unit id="_cY.wHP" resname="resetting.check_email">
-        <source>resetting.check_email</source>
-        <target>En email er blevet sendt. Den indeholder et link du skal klikke på for at nulstille din adgangskode. Note: Du kan kun anmode om en ny adgangskode indenfor %tokenLifetime% timer. Hvis du ikke får en email så tjek din spam folder eller prøv igen.</target>
+      <trans-unit id="_cY.wHP" resname="resetting.check_email" xml:space="preserve">
+        <source>An email has been sent with a link to reset your password. Note: You can only request a new password once every %tokenLifetime% hours. If you don't receive the email, please check your spam folder or try again.</source>
+        <target state="needs-translation">En email er blevet sendt. Den indeholder et link du skal klikke på for at nulstille din adgangskode. Note: Du kan kun anmode om en ny adgangskode indenfor %tokenLifetime% timer. Hvis du ikke får en email så tjek din spam folder eller prøv igen.</target>
       </trans-unit>
       <trans-unit id="ypVQO7o" resname="menu.reporting">
         <source>menu.reporting</source>
@@ -953,6 +950,34 @@
       <trans-unit id="3Clo55j" resname="about.title">
         <source>about.title</source>
         <target>Om Kimai</target>
+      </trans-unit>
+      <trans-unit id="U_D.NIy" resname="automatic">
+        <source>automatic</source>
+        <target state="translated">Automatisk</target>
+      </trans-unit>
+      <trans-unit id="1MfS6X5" resname="remove_filter">
+        <source>remove_filter</source>
+        <target state="translated">Nulstil søgefilter</target>
+      </trans-unit>
+      <trans-unit id="EGpYQvx" resname="help">
+        <source>help</source>
+        <target>Dokumentation</target>
+      </trans-unit>
+      <trans-unit id="oYYDCG5" resname="support">
+        <source>support</source>
+        <target>Support</target>
+      </trans-unit>
+      <trans-unit id="mz4ieCN" resname="donate">
+        <source>donate</source>
+        <target>Støt</target>
+      </trans-unit>
+      <trans-unit id="cR5DD88" resname="invoice_number_generator.date">
+        <source>invoice_number_generator.date</source>
+        <target>Dato</target>
+      </trans-unit>
+      <trans-unit id="UI6nPeP" resname="invoice_number_generator">
+        <source>invoice_number_generator</source>
+        <target>Fakturanummergenerator</target>
       </trans-unit>
     </body>
   </file>

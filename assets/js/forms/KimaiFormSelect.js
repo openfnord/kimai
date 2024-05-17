@@ -71,6 +71,11 @@ export default class KimaiFormSelect extends KimaiFormPlugin {
         */
 
         let options = {
+            // see https://github.com/orchidjs/tom-select/issues/543#issuecomment-1664342257
+            onItemAdd: function(){
+                // remove remaining characters from input after selecting an item
+                this.setTextboxValue('');
+            },
             lockOptgroupOrder: true,
             allowEmptyOption: !isRequired,
             hidePlaceholder: false,
@@ -78,6 +83,7 @@ export default class KimaiFormSelect extends KimaiFormPlugin {
             // if there are more than X entries, the other ones are hidden and can only be found
             // by typing some characters to trigger the internal option search
             maxOptions: 500,
+            sortField:[{field: '$order'}, {field: '$score'}],
         };
 
         let render = {

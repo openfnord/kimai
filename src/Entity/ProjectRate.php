@@ -24,8 +24,8 @@ class ProjectRate implements RateInterface
 {
     use Rate;
 
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Project')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private ?Project $project = null;
 

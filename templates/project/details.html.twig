@@ -14,7 +14,7 @@
             {% endif %}
         {% endblock %}
         {% block box_title %}
-            {{ widgets.label_name(project.name, project.color) }}
+            {{ widgets.label_dot(project.name, project.color) }}
         {% endblock %}
         {% block box_body_class %}p-0{% endblock %}
         {% block box_body %}
@@ -85,6 +85,14 @@
                         </td>
                     </tr>
                     {% endif %}
+                    {% if project.number is not empty %}
+                    <tr>
+                        <th>{{ 'project_number'|trans }}</th>
+                        <td colspan="3">
+                            {{ project.number }}
+                        </td>
+                    </tr>
+                    {% endif %}
                 {% endif %}
                 {% if project.hasBudget() and is_granted('budget', project) %}
                     <tr>
@@ -120,7 +128,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for metaField in project.visibleMetaFields|sort((a, b) => a.order <=> b.order) %}
+                {% for metaField in project.visibleMetaFields|filter(field => field.defined)|sort((a, b) => a.order <=> b.order) %}
                     <tr>
                         <th>{{ metaField.label|trans }}</th>
                         <td colspan="3">{{ widgets.form_type_value(metaField.type, metaField.value, project) }}</td>

@@ -2,11 +2,8 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en" target-language="fa" datatype="plaintext" original="messages.en.xlf">
     <body>
-      <!--
-              Global template keys
-            -->
-      <trans-unit id="N7mikjJ" resname="time_tracking">
-        <source>time_tracking</source>
+      <trans-unit id="N7mikjJ" resname="time_tracking" xml:space="preserve">
+        <source>Time Tracking</source>
         <target state="translated">ردیابی زمان</target>
       </trans-unit>
       <trans-unit id="inmIkP6" resname="yes">
@@ -280,8 +277,8 @@
         <target>نام</target>
       </trans-unit>
       <trans-unit id="yQRveje" resname="description">
-        <source>description</source>
-        <target>توضیحات</target>
+        <source>Description</source>
+        <target state="translated">توضیحات</target>
       </trans-unit>
       <trans-unit id="FveKfWM" resname="username">
         <source>username</source>
@@ -419,14 +416,6 @@
         <source>help.fixedRate</source>
         <target>هربار سابقه مقدار معینی میگیرد، صرف نظر از مدت آن</target>
       </trans-unit>
-      <trans-unit id="tl01EdS" resname="replaceTags">
-        <source>replaceTags</source>
-        <target>جایگزینی برچسب ها</target>
-      </trans-unit>
-      <trans-unit id="ICpl9sx" resname="appendTags">
-        <source>appendTags</source>
-        <target>پیوست تگ ها</target>
-      </trans-unit>
       <trans-unit id="1_wnK76" resname="profile.title">
         <source>profile.title</source>
         <target>نمایه کاربر</target>
@@ -487,9 +476,9 @@
         <source>An e-mail has been sent to %email%. It contains a link you must click to activate your account.</source>
         <target state="translated">ایمیلی شامل لینک فعالسازی به %email% ارسال شد. جهت فعال کردن حساب کاربری خود باید بر روی آن کلیک کنید.</target>
       </trans-unit>
-      <trans-unit id="_cY.wHP" resname="resetting.check_email">
-        <source>resetting.check_email</source>
-        <target state="translated">‌لینکی به ایمیل شما ارسال شد. جهت بازیابی رمز خود روی آن کلیک کنید. نکته: شما در طی %tokenLifetime% ساعت فقط یکبار می‌توانید رمز جدید درخواست کنید. اگر ایمیل برای شما ارسال نشد پوشه هرزنامه را بررسی کنید یا دوباره تلاش کنید.</target>
+      <trans-unit id="_cY.wHP" resname="resetting.check_email" xml:space="preserve">
+        <source>An email has been sent with a link to reset your password. Note: You can only request a new password once every %tokenLifetime% hours. If you don't receive the email, please check your spam folder or try again.</source>
+        <target state="needs-translation">‌لینکی به ایمیل شما ارسال شد. جهت بازیابی رمز خود روی آن کلیک کنید. نکته: شما در طی %tokenLifetime% ساعت فقط یکبار می‌توانید رمز جدید درخواست کنید. اگر ایمیل برای شما ارسال نشد پوشه هرزنامه را بررسی کنید یا دوباره تلاش کنید.</target>
       </trans-unit>
       <trans-unit id="XQ2.pq2" resname="error.too_many_entries">
         <source>error.too_many_entries</source>
@@ -639,9 +628,9 @@
         <source>stats.workingTimeFinancialYear</source>
         <target state="translated">سال مالی</target>
       </trans-unit>
-      <trans-unit id="BXBFJP8" resname="stats.workingTime">
-        <source>stats.workingTime</source>
-        <target state="translated">زمان کار</target>
+      <trans-unit id="BXBFJP8" resname="stats.workingTime" xml:space="preserve">
+        <source>Working hours</source>
+        <target>زمان کار</target>
       </trans-unit>
       <trans-unit id="TdBJBAl" resname="stats.durationToday">
         <source>stats.durationToday</source>
@@ -813,7 +802,7 @@
       </trans-unit>
       <trans-unit id="dTHY7Mw" resname="timesheet.start">
         <source>timesheet.start</source>
-        <target state="translated">رکورد زمانی ایجاد کنید</target>
+        <target state="needs-translation">رکورد زمانی ایجاد کنید</target>
       </trans-unit>
       <trans-unit id="igCkqAP" resname="pageSize">
         <source>pageSize</source>
@@ -1195,10 +1184,6 @@
         <source>help.globalActivity</source>
         <target state="translated">اگر پروژه ای را انتخاب نکنید، این فعالیت جهانی می شود و می توان آن را با هر پروژه ای ترکیب کرد. اگر پروژه ای را انتخاب کنید، فعالیت فقط با آن پروژه قابل استفاده است. تنظیم را نمی توان بعداً تغییر داد.</target>
       </trans-unit>
-      <trans-unit id="fxFzCHd" resname="api_password.missing_description">
-        <source>api_password.missing_description</source>
-        <target state="translated">شما هنوز رمز عبور API را وارد نکرده اید. به دلایل امنیتی، تا زمانی که رمز عبور را ذخیره نکرده باشید، نمی توانید از API استفاده کنید.</target>
-      </trans-unit>
       <trans-unit id="1MfS6X5" resname="remove_filter">
         <source>remove_filter</source>
         <target state="translated">فیلتر جستجو را بازنشانی کنید</target>
@@ -1355,9 +1340,9 @@
         <source>skin.dark</source>
         <target state="translated">تاریک</target>
       </trans-unit>
-      <trans-unit id="JSBReoa" resname="api_password.intro">
+      <trans-unit id="JSBReoa" resname="api_password.intro" xml:space="preserve">
         <source>api_password.intro</source>
-        <target state="translated">رمز عبور API برای ارتباط بین Kimai و برنامه های شما استفاده می شود</target>
+        <target state="needs-translation">رمز عبور API برای ارتباط بین Kimai و برنامه های شما استفاده می شود</target>
       </trans-unit>
       <trans-unit id="QT8.BCN" resname="api_password.missing_title">
         <source>api_password.missing_title</source>
@@ -1390,6 +1375,30 @@
       <trans-unit id="3WHV.yf" resname="activated">
         <source>Activated</source>
         <target state="translated">فعال شد</target>
+      </trans-unit>
+      <trans-unit id="EGpYQvx" resname="help">
+        <source>help</source>
+        <target>مستندات</target>
+      </trans-unit>
+      <trans-unit id="oYYDCG5" resname="support">
+        <source>support</source>
+        <target state="translated">انجمن</target>
+      </trans-unit>
+      <trans-unit id="mz4ieCN" resname="donate">
+        <source>donate</source>
+        <target state="translated">هدیه دادن</target>
+      </trans-unit>
+      <trans-unit id="cR5DD88" resname="invoice_number_generator.date">
+        <source>invoice_number_generator.date</source>
+        <target state="translated">تاریخ</target>
+      </trans-unit>
+      <trans-unit id="Qh1X4Vu" resname="invoice_number_generator.default">
+        <source>invoice_number_generator.default</source>
+        <target state="translated">فرمت پیکربندی شده</target>
+      </trans-unit>
+      <trans-unit id="UI6nPeP" resname="invoice_number_generator">
+        <source>invoice_number_generator</source>
+        <target state="translated">مولد شماره فاکتور</target>
       </trans-unit>
     </body>
   </file>

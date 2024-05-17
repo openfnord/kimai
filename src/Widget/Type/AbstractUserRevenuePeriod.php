@@ -11,7 +11,7 @@ namespace App\Widget\Type;
 
 use App\Event\UserRevenueStatisticEvent;
 use App\Repository\TimesheetRepository;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractUserRevenuePeriod extends AbstractWidget
 {
@@ -34,6 +34,10 @@ abstract class AbstractUserRevenuePeriod extends AbstractWidget
         return ['view_rate_own_timesheet'];
     }
 
+    /**
+     * @param array<string, string|bool|int|null|array<string, mixed>> $options
+     @return array<string, string|bool|int|null|array<string, mixed>>
+     */
     public function getOptions(array $options = []): array
     {
         return array_merge([
@@ -41,18 +45,13 @@ abstract class AbstractUserRevenuePeriod extends AbstractWidget
         ], parent::getOptions($options));
     }
 
-    protected function getRevenue(?string $begin, ?string $end, array $options = [])
+    /**
+     * @param array<string, string|bool|int|null|array<string, mixed>> $options
+     * @return array<string, float>
+     */
+    protected function getRevenue(?\DateTimeInterface $begin, ?\DateTimeInterface $end, array $options = []): array
     {
         $user = $this->getUser();
-        $timezone = new \DateTimeZone($user->getTimezone());
-
-        if ($begin !== null) {
-            $begin = new \DateTime($begin, $timezone);
-        }
-
-        if ($end !== null) {
-            $end = new \DateTime($end, $timezone);
-        }
 
         $data = $this->repository->getRevenue($begin, $end, $user);
 

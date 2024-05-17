@@ -28,7 +28,8 @@ class UserPreference
     public const HOURLY_RATE = 'hourly_rate';
     public const INTERNAL_RATE = 'internal_rate';
     public const SKIN = 'skin';
-    public const LOCALE = 'language';
+    public const LANGUAGE = 'language';
+    public const LOCALE = 'locale';
     public const TIMEZONE = 'timezone';
     public const FIRST_WEEKDAY = 'first_weekday';
     public const WORK_HOURS_MONDAY = 'work_monday';
@@ -38,6 +39,7 @@ class UserPreference
     public const WORK_HOURS_FRIDAY = 'work_friday';
     public const WORK_HOURS_SATURDAY = 'work_saturday';
     public const WORK_HOURS_SUNDAY = 'work_sunday';
+    public const WORK_STARTING_DAY = 'work_start_day';
     public const PUBLIC_HOLIDAY_GROUP = 'public_holiday_group';
     public const HOLIDAYS_PER_YEAR = 'holidays';
 
@@ -45,7 +47,7 @@ class UserPreference
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: 'integer')]
     private ?int $id = null;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\User', inversedBy: 'preferences')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'preferences')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private ?User $user = null;
@@ -85,10 +87,6 @@ class UserPreference
         return $this->id;
     }
 
-    /**
-     * @param int $id
-     * @return UserPreference
-     */
     public function setId(int $id): UserPreference
     {
         $this->id = $id;
@@ -110,7 +108,13 @@ class UserPreference
 
     public function getName(): ?string
     {
-        return $this->sanitizeName($this->name);
+        $sanitized = $this->sanitizeName($this->name);
+
+        if ($sanitized !== $this->name) {
+            $this->name = $sanitized;
+        }
+
+        return $this->name;
     }
 
     public function matches(string $name): bool
@@ -118,7 +122,7 @@ class UserPreference
         return $this->sanitizeName($name) === $this->getName();
     }
 
-    public function sanitizeName(?string $name): string
+    private function sanitizeName(?string $name): string
     {
         return str_replace(['.', '-'], '_', $name);
     }
@@ -149,9 +153,6 @@ class UserPreference
 
     /**
      * Sets the form type to edit that setting.
-     *
-     * @param string $type
-     * @return UserPreference
      */
     public function setType(string $type): UserPreference
     {

@@ -16,6 +16,8 @@ use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class TimePickerType extends AbstractType
@@ -40,6 +42,11 @@ final class TimePickerType extends AbstractType
         ]);
     }
 
+    public function buildView(FormView $view, FormInterface $form, array $options): void
+    {
+        $view->vars['format'] = $options['format'];
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->addModelTransformer(
@@ -51,9 +58,17 @@ final class TimePickerType extends AbstractType
 
                     // DateTimePickerType
                     if ($options['input'] === 'array' && \is_array($data)) {
+                        if (!\array_key_exists('hour', $data) || $data['hour'] === '' || $data['hour'] === null) {
+                            return null;
+                        }
+
+                        if (!\array_key_exists('minute', $data) || $data['minute'] === '' || $data['minute'] === null) {
+                            return null;
+                        }
+
                         $now = new \DateTime('now', new \DateTimeZone($options['model_timezone']));
-                        $hour = $data['hour'] === '' || !is_numeric($data['hour']) ? 0 : (int) $data['hour'];
-                        $minute = $data['minute'] === '' || !is_numeric($data['minute']) ? 0 : (int) $data['minute'];
+                        $hour = !is_numeric($data['hour']) ? 0 : (int) $data['hour'];
+                        $minute = !is_numeric($data['minute']) ? 0 : (int) $data['minute'];
                         $now->setTime($hour, $minute, 0);
                         $data = $now;
                     }

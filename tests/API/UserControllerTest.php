@@ -16,12 +16,15 @@ use App\Entity\User;
  */
 class UserControllerTest extends APIControllerBaseTest
 {
-    public function testIsSecure()
+    public function testIsSecure(): void
     {
         $this->assertUrlIsSecured('/api/users');
     }
 
-    public function getRoleTestData()
+    /**
+     * @return array<array<string>>
+     */
+    public function getRoleTestData(): array
     {
         return [
             [User::ROLE_USER],
@@ -33,16 +36,18 @@ class UserControllerTest extends APIControllerBaseTest
     /**
      * @dataProvider getRoleTestData
      */
-    public function testIsSecureForRole(string $role)
+    public function testIsSecureForRole(string $role): void
     {
         $this->assertUrlIsSecuredForRole($role, '/api/users');
     }
 
-    public function testGetCollection()
+    public function testGetCollection(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/api/users');
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
 
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
@@ -52,11 +57,30 @@ class UserControllerTest extends APIControllerBaseTest
         }
     }
 
-    public function testGetCollectionWithQuery()
+    public function testGetCollectionFull(): void
+    {
+        $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
+        $this->assertAccessIsGranted($client, '/api/users?full=true');
+
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
+
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+        $this->assertEquals(7, \count($result));
+        foreach ($result as $user) {
+            self::assertApiResponseTypeStructure('UserEntity', $user);
+        }
+    }
+
+    public function testGetCollectionWithQuery(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/api/users', 'GET', ['visible' => 2, 'orderBy' => 'email', 'order' => 'DESC', 'term' => 'chris']);
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
 
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
@@ -66,11 +90,13 @@ class UserControllerTest extends APIControllerBaseTest
         }
     }
 
-    public function testGetCollectionWithQuery2()
+    public function testGetCollectionWithQuery2(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/api/users', 'GET', ['visible' => 3, 'orderBy' => 'email', 'order' => 'DESC']);
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
 
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
@@ -80,11 +106,13 @@ class UserControllerTest extends APIControllerBaseTest
         }
     }
 
-    public function testGetEntity()
+    public function testGetEntity(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/api/users/1');
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
 
         $this->assertIsArray($result);
         self::assertApiResponseTypeStructure('UserEntity', $result);
@@ -93,11 +121,13 @@ class UserControllerTest extends APIControllerBaseTest
         self::assertEquals('Clara Haynes', $result['alias']);
     }
 
-    public function testGetMyProfile()
+    public function testGetMyProfile(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/api/users/me');
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
 
         $this->assertIsArray($result);
         self::assertApiResponseTypeStructure('UserEntity', $result);
@@ -106,28 +136,30 @@ class UserControllerTest extends APIControllerBaseTest
         self::assertEquals('', $result['alias']);
     }
 
-    public function testNotFound()
+    public function testNotFound(): void
     {
         $this->assertEntityNotFound(User::ROLE_SUPER_ADMIN, '/api/users/99');
     }
 
-    public function testGetEntityAccessDenied()
+    public function testGetEntityAccessDenied(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_USER);
         $this->assertApiAccessDenied($client, '/api/users/4', 'You are not allowed to view this profile');
     }
 
-    public function testGetEntityAccessAllowedForOwnProfile()
+    public function testGetEntityAccessAllowedForOwnProfile(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_USER);
         $this->assertAccessIsGranted($client, '/api/users/2');
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
 
         $this->assertIsArray($result);
         self::assertApiResponseTypeStructure('UserEntity', $result);
     }
 
-    public function testPostAction()
+    public function testPostAction(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $data = [
@@ -136,6 +168,7 @@ class UserControllerTest extends APIControllerBaseTest
             'title' => 'asdfghjkl',
             'plainPassword' => 'foo@example.com',
             'enabled' => true,
+            'supervisor' => 2,
             'language' => 'ru',
             'timezone' => 'Europe/Paris',
             'roles' => [
@@ -146,7 +179,9 @@ class UserControllerTest extends APIControllerBaseTest
         $this->request($client, '/api/users', 'POST', [], json_encode($data));
         $this->assertTrue($client->getResponse()->isSuccessful());
 
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
         $this->assertIsArray($result);
         self::assertApiResponseTypeStructure('UserEntity', $result);
         $this->assertNotEmpty($result['id']);
@@ -158,7 +193,7 @@ class UserControllerTest extends APIControllerBaseTest
         self::assertEquals(['ROLE_TEAMLEAD', 'ROLE_ADMIN'], $result['roles']);
     }
 
-    public function testPostActionWithShortPassword()
+    public function testPostActionWithShortPassword(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $data = [
@@ -181,7 +216,7 @@ class UserControllerTest extends APIControllerBaseTest
         $this->assertApiCallValidationError($response, ['plainPassword']);
     }
 
-    public function testPostActionWithValidationErrors()
+    public function testPostActionWithValidationErrors(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $data = [
@@ -201,7 +236,7 @@ class UserControllerTest extends APIControllerBaseTest
         $this->assertApiCallValidationError($response, ['username', 'email', 'plainPassword', 'language', 'timezone', 'roles']);
     }
 
-    public function testPostActionWithInvalidUser()
+    public function testPostActionWithInvalidUser(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_ADMIN);
         $data = [
@@ -217,7 +252,7 @@ class UserControllerTest extends APIControllerBaseTest
         $this->assertApiResponseAccessDenied($response, 'Access denied.');
     }
 
-    public function testPatchAction()
+    public function testPatchAction(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $data = [
@@ -234,7 +269,9 @@ class UserControllerTest extends APIControllerBaseTest
         ];
         $this->request($client, '/api/users', 'POST', [], json_encode($data));
         $this->assertTrue($client->getResponse()->isSuccessful());
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
         self::assertFalse($result['enabled']);
 
         $data = [
@@ -249,7 +286,9 @@ class UserControllerTest extends APIControllerBaseTest
         $this->request($client, '/api/users/' . $result['id'], 'PATCH', [], json_encode($data));
         $this->assertTrue($client->getResponse()->isSuccessful());
 
-        $result = json_decode($client->getResponse()->getContent(), true);
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $result = json_decode($content, true);
         $this->assertIsArray($result);
         self::assertApiResponseTypeStructure('UserEntity', $result);
         $this->assertNotEmpty($result['id']);
@@ -261,19 +300,19 @@ class UserControllerTest extends APIControllerBaseTest
         self::assertEquals(['ROLE_TEAMLEAD'], $result['roles']);
     }
 
-    public function testPatchActionWithUnknownUser()
+    public function testPatchActionWithUnknownUser(): void
     {
         $this->assertEntityNotFoundForPatch(User::ROLE_SUPER_ADMIN, '/api/users/255', []);
     }
 
-    public function testPatchActionWithInvalidUser()
+    public function testPatchActionWithInvalidUser(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_USER);
         $this->request($client, '/api/users/1', 'PATCH', [], json_encode(['language' => 'hu']));
         $this->assertApiResponseAccessDenied($client->getResponse(), 'Not allowed to edit user');
     }
 
-    public function testPatchActionWithValidationErrors()
+    public function testPatchActionWithValidationErrors(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $data = [

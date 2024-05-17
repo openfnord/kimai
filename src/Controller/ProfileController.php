@@ -9,11 +9,13 @@
 
 namespace App\Controller;
 
+use App\Entity\AccessToken;
 use App\Entity\User;
 use App\Entity\UserPreference;
 use App\Event\PrepareUserEvent;
+use App\Form\AccessTokenForm;
 use App\Form\Model\TotpActivation;
-use App\Form\UserApiTokenType;
+use App\Form\UserApiPasswordType;
 use App\Form\UserContractType;
 use App\Form\UserEditType;
 use App\Form\UserPasswordType;
@@ -21,24 +23,27 @@ use App\Form\UserPreferencesForm;
 use App\Form\UserRolesType;
 use App\Form\UserTeamsType;
 use App\Form\UserTwoFactorType;
+use App\Repository\AccessTokenRepository;
+use App\Repository\Query\TimesheetStatisticQuery;
 use App\Repository\TeamRepository;
 use App\Repository\TimesheetRepository;
 use App\Repository\UserRepository;
 use App\Timesheet\TimesheetStatisticService;
 use App\User\UserService;
+use App\Utils\PageSetup;
 use Doctrine\Common\Collections\ArrayCollection;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -54,27 +59,44 @@ final class ProfileController extends AbstractController
         return $this->redirectToRoute('user_profile', ['username' => $this->getUser()->getUserIdentifier()]);
     }
 
+    private function getPageSetup(User $profile, string $view): PageSetup
+    {
+        $page = new PageSetup('users');
+        $page->setHelp('users.html');
+        $page->setActionName('user');
+        $page->setActionView($view);
+        $page->setActionPayload(['user' => $profile]);
+
+        return $page;
+    }
+
     #[Route(path: '/{username}', name: 'user_profile', methods: ['GET'])]
     #[IsGranted('view', 'profile')]
     public function indexAction(User $profile, TimesheetRepository $repository, TimesheetStatisticService $statisticService): Response
     {
         $dateFactory = $this->getDateTimeFactory();
         $userStats = $repository->getUserStatistics($profile);
-        $firstEntry = $statisticService->findFirstRecordDate($profile);
+        $workStartingDay = $profile->getWorkStartingDay();
+        if ($workStartingDay === null) {
+            $workStartingDay = $statisticService->findFirstRecordDate($profile);
+        }
 
-        $begin = $firstEntry ?? $dateFactory->getStartOfMonth();
+        $begin = $workStartingDay ?? $dateFactory->getStartOfMonth();
         $end = $dateFactory->getEndOfMonth();
 
         // statistic service does not fill up the complete year by default!
         // but we need a full year, because the chart needs always 12 month
         $begin = $dateFactory->createStartOfYear($begin);
 
+        $query = new TimesheetStatisticQuery($begin, $end, [$profile]);
+
         $viewVars = [
             'tab' => 'charts',
+            'page_setup' => $this->getPageSetup($profile, 'charts'),
             'user' => $profile,
             'stats' => $userStats,
-            'firstTimesheet' => $firstEntry,
-            'workMonths' => $statisticService->getMonthlyStats($begin, $end, [$profile])[0]
+            'workingSince' => $workStartingDay,
+            'workMonths' => $statisticService->getMonthlyStats($query)[0]
         ];
 
         return $this->render('user/stats.html.twig', $viewVars);
@@ -92,11 +114,17 @@ final class ProfileController extends AbstractController
 
             $this->flashSuccess('action.update.success');
 
-            return $this->redirectToRoute('user_profile_edit', ['username' => $profile->getUserIdentifier()]);
+            $locale = $request->getLocale();
+            if ($this->getUser()->getId() === $profile->getId()) {
+                $locale = $profile->getPreferenceValue('language', $locale, false);
+            }
+
+            return $this->redirectToRoute('user_profile_edit', ['username' => $profile->getUserIdentifier(), '_locale' => $locale]);
         }
 
         return $this->render('user/profile.html.twig', [
             'tab' => 'edit',
+            'page_setup' => $this->getPageSetup($profile, 'edit'),
             'user' => $profile,
             'form' => $form->createView(),
         ]);
@@ -111,7 +139,7 @@ final class ProfileController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $userService->updateUser($profile);
+            $userService->saveUser($profile);
 
             $this->flashSuccess('action.update.success');
 
@@ -120,6 +148,36 @@ final class ProfileController extends AbstractController
 
         return $this->render('user/form.html.twig', [
             'tab' => 'password',
+            'page_setup' => $this->getPageSetup($profile, 'password'),
+            'user' => $profile,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route(path: '/{username}/create-access-token', name: 'user_profile_access_token', methods: ['GET', 'POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    #[IsGranted('api-token', 'profile')]
+    public function createAccessToken(User $profile, Request $request, AccessTokenRepository $accessTokenRepository): Response
+    {
+        $accessToken = new AccessToken($profile, substr(bin2hex(random_bytes(100)), 0, 25));
+
+        $form = $this->createForm(AccessTokenForm::class, $accessToken, [
+            'action' => $this->generateUrl('user_profile_access_token', ['username' => $profile->getUserIdentifier()]),
+            'method' => 'POST'
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $accessTokenRepository->saveAccessToken($accessToken);
+
+            $this->flashSuccess('action.update.success');
+            $request->getSession()->set('_show_access_token', $accessToken->getId());
+
+            return $this->redirectToRoute('user_profile_api_token', ['username' => $profile->getUserIdentifier(), 'hide-token' => '1']);
+        }
+
+        return $this->render('user/access-token.html.twig', [
+            'access_token' => $accessToken,
             'user' => $profile,
             'form' => $form->createView(),
         ]);
@@ -128,21 +186,45 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/api-token', name: 'user_profile_api_token', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('api-token', 'profile')]
-    public function apiTokenAction(User $profile, Request $request, UserService $userService): Response
+    public function apiTokenAction(User $profile, Request $request, UserService $userService, AccessTokenRepository $accessTokenRepository): Response
     {
-        $form = $this->createApiTokenForm($profile);
+        $form = $this->createForm(UserApiPasswordType::class, $profile, [
+            'action' => $this->generateUrl('user_profile_api_token', ['username' => $profile->getUserIdentifier()]),
+            'method' => 'POST'
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $userService->updateUser($profile);
+            @trigger_error('User ' . $profile->getUsername() . ' created deprecated API password.', E_USER_DEPRECATED);
+
+            $userService->saveUser($profile);
 
             $this->flashSuccess('action.update.success');
 
             return $this->redirectToRoute('user_profile_api_token', ['username' => $profile->getUserIdentifier()]);
         }
 
+        $accessTokens = $accessTokenRepository->findForUser($profile);
+
+        $createdToken = null;
+
+        if (!$request->query->has('hide-token')) {
+            $createdId = $request->getSession()->get('_show_access_token');
+            $request->getSession()->remove('_show_access_token');
+            if ($createdId !== null) {
+                foreach ($accessTokens as $accessToken) {
+                    if ($accessToken->getId() === $createdId) {
+                        $createdToken = $accessToken;
+                    }
+                }
+            }
+        }
+
         return $this->render('user/api-token.html.twig', [
             'tab' => 'api-token',
+            'created_token' => $createdToken,
+            'access_tokens' => $accessTokens,
+            'page_setup' => $this->getPageSetup($profile, 'api-token'),
             'user' => $profile,
             'form' => $form->createView(),
         ]);
@@ -174,6 +256,7 @@ final class ProfileController extends AbstractController
 
         return $this->render('user/form.html.twig', [
             'tab' => 'roles',
+            'page_setup' => $this->getPageSetup($profile, 'roles'),
             'user' => $profile,
             'form' => $form->createView(),
         ]);
@@ -200,6 +283,7 @@ final class ProfileController extends AbstractController
 
         return $this->render('user/contract.html.twig', [
             'tab' => 'contract',
+            'page_setup' => $this->getPageSetup($profile, 'contract'),
             'user' => $profile,
             'form' => $form->createView(),
         ]);
@@ -235,6 +319,7 @@ final class ProfileController extends AbstractController
 
         return $this->render('user/form.html.twig', [
             'tab' => 'teams',
+            'page_setup' => $this->getPageSetup($profile, 'teams'),
             'user' => $profile,
             'form' => $form->createView(),
         ]);
@@ -245,7 +330,7 @@ final class ProfileController extends AbstractController
     public function preferencesAction(User $profile, Request $request, EventDispatcherInterface $dispatcher, UserRepository $userRepository): Response
     {
         // we need to prepare the user preferences, which is done via an EventSubscriber
-        $event = new PrepareUserEvent($profile);
+        $event = new PrepareUserEvent($profile, false);
         $dispatcher->dispatch($event);
 
         $form = $this->createPreferencesForm($profile);
@@ -285,7 +370,8 @@ final class ProfileController extends AbstractController
         }
 
         return $this->render('user/preferences.html.twig', [
-            'tab' => 'preferences',
+            'tab' => 'settings',
+            'page_setup' => $this->getPageSetup($profile, 'settings'),
             'user' => $profile,
             'form' => $form->createView(),
             'sections' => $sections
@@ -306,14 +392,19 @@ final class ProfileController extends AbstractController
 
     private function createEditForm(User $user): FormInterface
     {
+        $currentUser = $this->getUser();
+
         return $this->createForm(
             UserEditType::class,
             $user,
             [
                 'action' => $this->generateUrl('user_profile_edit', ['username' => $user->getUserIdentifier()]),
                 'method' => 'POST',
-                'include_active_flag' => ($user->getId() !== $this->getUser()->getId()),
-                'include_preferences' => false,
+                'include_active_flag' => $user !== $currentUser,
+                'include_preferences' => true,
+                'include_supervisor' => $this->isGranted('supervisor', $user),
+                'include_username' => $currentUser->isSuperAdmin() && $currentUser !== $user,
+                'include_password_reset' => $this->isGranted('password', $user),
             ]
         );
     }
@@ -354,18 +445,6 @@ final class ProfileController extends AbstractController
         );
     }
 
-    private function createApiTokenForm(User $user): FormInterface
-    {
-        return $this->createForm(
-            UserApiTokenType::class,
-            $user,
-            [
-                'action' => $this->generateUrl('user_profile_api_token', ['username' => $user->getUserIdentifier()]),
-                'method' => 'POST'
-            ]
-        );
-    }
-
     #[Route(path: '/{username}/2fa', name: 'user_profile_2fa', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('2fa', 'profile')]
@@ -373,7 +452,7 @@ final class ProfileController extends AbstractController
     {
         if (!$profile->hasTotpSecret()) {
             $profile->setTotpSecret($totpAuthenticator->generateSecret());
-            $userService->updateUser($profile);
+            $userService->saveUser($profile);
         }
 
         $data = new TotpActivation($profile);
@@ -387,7 +466,7 @@ final class ProfileController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->enableTotpAuthentication();
-            $userService->updateUser($profile);
+            $userService->saveUser($profile);
 
             $this->flashSuccess('action.update.success');
 
@@ -409,6 +488,7 @@ final class ProfileController extends AbstractController
 
         return $this->render('user/2fa.html.twig', [
             'tab' => '2fa',
+            'page_setup' => $this->getPageSetup($profile, '2fa'),
             'user' => $profile,
             'form' => $form->createView(),
             'deactivate' => $this->getTwoFactorDeactivationForm($profile)->createView(),
@@ -436,7 +516,7 @@ final class ProfileController extends AbstractController
 
             if ($form->isSubmitted() && $form->isValid()) {
                 $profile->disableTotpAuthentication();
-                $userService->updateUser($profile);
+                $userService->saveUser($profile);
 
                 $this->flashSuccess('action.update.success');
             }

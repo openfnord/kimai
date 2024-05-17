@@ -290,7 +290,7 @@ class ProjectRepository extends EntityRepository
      */
     private function getSearchableFields(): array
     {
-        return ['p.name', 'p.comment', 'p.orderNumber'];
+        return ['p.name', 'p.comment', 'p.orderNumber', 'p.number'];
     }
 
     private function addProjectStartAndEndDate(QueryBuilder $qb, ?DateTime $begin, ?DateTime $end): Andx
@@ -347,11 +347,7 @@ class ProjectRepository extends EntityRepository
 
     public function getPagerfantaForQuery(ProjectQuery $query): Pagination
     {
-        $paginator = new Pagination($this->getPaginatorForQuery($query));
-        $paginator->setMaxPerPage($query->getPageSize());
-        $paginator->setCurrentPage($query->getPage());
-
-        return $paginator;
+        return new Pagination($this->getPaginatorForQuery($query), $query);
     }
 
     private function getPaginatorForQuery(ProjectQuery $query): PaginatorInterface

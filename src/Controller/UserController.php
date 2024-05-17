@@ -11,6 +11,7 @@ namespace App\Controller;
 
 use App\Configuration\SystemConfiguration;
 use App\Entity\User;
+use App\Event\PrepareUserEvent;
 use App\Event\UserPreferenceDisplayEvent;
 use App\Export\Spreadsheet\UserExporter;
 use App\Export\Spreadsheet\Writer\BinaryFileResponseWriter;
@@ -18,19 +19,18 @@ use App\Export\Spreadsheet\Writer\XlsxWriter;
 use App\Form\Toolbar\UserToolbarForm;
 use App\Form\Type\UserType;
 use App\Form\UserCreateType;
-use App\Repository\Query\UserFormTypeQuery;
 use App\Repository\Query\UserQuery;
 use App\Repository\TimesheetRepository;
 use App\Repository\UserRepository;
 use App\User\UserService;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -70,14 +70,15 @@ final class UserController extends AbstractController
         $table->setReloadEvents('kimai.userUpdate');
 
         $table->addColumn('avatar', ['class' => 'alwaysVisible w-avatar', 'title' => null, 'orderBy' => false]);
-        $table->addColumn('user', ['class' => 'alwaysVisible', 'orderBy' => 'user']);
-        $table->addColumn('username', ['class' => 'd-none']);
+        //$table->addColumn('user', ['class' => 'alwaysVisible', 'orderBy' => 'user']);
+        $table->addColumn('username', ['class' => 'alwaysVisible']);
         $table->addColumn('alias', ['class' => 'd-none']);
         $table->addColumn('account_number', ['class' => 'd-none']);
         $table->addColumn('title', ['class' => 'd-none']);
         $table->addColumn('email', ['class' => 'd-none', 'orderBy' => false]);
         $table->addColumn('lastLogin', ['class' => 'd-none', 'orderBy' => false]);
         $table->addColumn('roles', ['class' => 'd-none', 'orderBy' => false]);
+        $table->addColumn('system_account', ['class' => 'd-none', 'orderBy' => 'systemAccount']);
 
         foreach ($event->getPreferences() as $userPreference) {
             $table->addColumn('mf_' . $userPreference->getName(), ['title' => $userPreference->getLabel(), 'class' => 'd-none', 'orderBy' => false, 'translation_domain' => 'messages', 'data' => $userPreference]);
@@ -112,7 +113,7 @@ final class UserController extends AbstractController
 
     #[Route(path: '/create', name: 'admin_user_create', methods: ['GET', 'POST'])]
     #[IsGranted('create_user')]
-    public function createAction(Request $request, SystemConfiguration $config, UserRepository $userRepository): Response
+    public function createAction(Request $request, SystemConfiguration $config, UserRepository $userRepository, EventDispatcherInterface $dispatcher): Response
     {
         $user = $this->createNewDefaultUser($config);
         $editForm = $this->getCreateUserForm($user);
@@ -125,6 +126,14 @@ final class UserController extends AbstractController
 
             $userRepository->saveUser($user);
             $this->flashSuccess('action.update.success');
+
+            try {
+                $event = new PrepareUserEvent($user, false);
+                $dispatcher->dispatch($event);
+                $userRepository->saveUser($user);
+            } catch (\Exception $ex) {
+                // it should be no problem, if creating default user preferences fails
+            }
 
             return $this->redirectToRouteAfterCreate('user_profile_edit', ['username' => $user->getUserIdentifier()]);
         }
@@ -154,13 +163,7 @@ final class UserController extends AbstractController
                 ]
             ])
             ->add('user', UserType::class, [
-                'query_builder' => function (UserRepository $repo) use ($userToDelete) {
-                    $query = new UserFormTypeQuery();
-                    $query->addUserToIgnore($userToDelete);
-                    $query->setUser($this->getUser());
-
-                    return $repo->getQueryBuilderForFormType($query);
-                },
+                'ignore_users' => [$userToDelete],
                 'required' => false,
             ])
             ->setAction($this->generateUrl('admin_user_delete', ['id' => $userToDelete->getId()]))
@@ -193,7 +196,7 @@ final class UserController extends AbstractController
 
     #[Route(path: '/export', name: 'user_export', methods: ['GET'])]
     #[IsGranted('view_user')]
-    public function exportAction(Request $request, UserExporter $exporter)
+    public function exportAction(Request $request, UserExporter $exporter): Response
     {
         $query = new UserQuery();
         $query->setCurrentUser($this->getUser());
@@ -233,6 +236,7 @@ final class UserController extends AbstractController
             'method' => 'POST',
             'include_active_flag' => true,
             'include_preferences' => true,
+            'include_supervisor' => $this->isGranted('supervisor_other_profile'),
             'include_teams' => $this->isGranted('teams_other_profile'),
             'include_roles' => $this->isGranted('roles_other_profile'),
         ]);

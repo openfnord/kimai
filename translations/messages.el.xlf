@@ -2,12 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en" target-language="el" datatype="plaintext" original="messages.en.xlf">
     <body>
-      <!--
-              Global template keys
-            -->
-      <trans-unit id="N7mikjJ" resname="time_tracking">
-        <source>time_tracking</source>
-        <target>Παρακολούθηση Χρόνου</target>
+      <trans-unit id="N7mikjJ" resname="time_tracking" xml:space="preserve">
+        <source>Time Tracking</source>
+        <target state="translated">Παρακολούθηση Χρόνου</target>
       </trans-unit>
       <trans-unit id="inmIkP6" resname="yes">
         <source>yes</source>
@@ -250,8 +247,8 @@
         <target>Όνομα χρήστη</target>
       </trans-unit>
       <trans-unit id="yQRveje" resname="description">
-        <source>description</source>
-        <target>Περιγραφή</target>
+        <source>Description</source>
+        <target state="translated">Περιγραφή</target>
       </trans-unit>
       <trans-unit id="gqNTf.D" resname="name">
         <source>name</source>
@@ -441,13 +438,13 @@
         <source>color</source>
         <target>Χρώμα</target>
       </trans-unit>
-      <trans-unit id="tl01EdS" resname="replaceTags">
-        <source>replaceTags</source>
-        <target>Αντικατάσταση ετικετών</target>
+      <trans-unit id="erN3h3b" resname="replace">
+        <source>replace</source>
+        <target>Αντικατάσταση</target>
       </trans-unit>
-      <trans-unit id="ICpl9sx" resname="appendTags">
-        <source>appendTags</source>
-        <target>Προσάρτηση ετικετών</target>
+      <trans-unit id="rlJLVNm" resname="append">
+        <source>append</source>
+        <target>Προσάρτηση</target>
       </trans-unit>
       <!--
               User profile
@@ -980,7 +977,7 @@
       </trans-unit>
       <trans-unit id="dTHY7Mw" resname="timesheet.start">
         <source>timesheet.start</source>
-        <target>Δημιουργήστε νέα εγγραφή ωρών</target>
+        <target state="needs-translation">Δημιουργήστε νέα εγγραφή ωρών</target>
       </trans-unit>
       <!--
               TOOLBARS
@@ -1077,8 +1074,8 @@
         <source>stats.revenue</source>
         <target>Εισπράξεις</target>
       </trans-unit>
-      <trans-unit id="BXBFJP8" resname="stats.workingTime">
-        <source>stats.workingTime</source>
+      <trans-unit id="BXBFJP8" resname="stats.workingTime" xml:space="preserve">
+        <source>Working hours</source>
         <target>Χρόνος εργασίας</target>
       </trans-unit>
       <trans-unit id="HWB4OGJ" resname="stats.workingTimeFinancialYear">
@@ -1093,9 +1090,9 @@
         <source>error.too_many_entries</source>
         <target>Το αίτημα δεν μπορεί να επεξεργαστεί, βρέθηκαν πάρα πολλά αποτελέσματα.</target>
       </trans-unit>
-      <trans-unit id="_cY.wHP" resname="resetting.check_email">
-        <source>resetting.check_email</source>
-        <target>Ένα ηλεκτρονικό μήνυμα έχει αποσταλεί. Περιέχει το σύνδεσμο που πρέπει να ακολουθήσετε για να επαναφέρετε τον κωδικό σας. Σημείωση: Μπορείτε να ζητήσετε νέο κωδικό μία φορά εντός %tokenLifetime% ωρών. Εάν δεν λάβετε το ηλεκτρονικό μήνυμα ελέγξετε τον φάκελο με τα ανεπιθύμητα μηνύματα η προσπαθήστε ξανά.</target>
+      <trans-unit id="_cY.wHP" resname="resetting.check_email" xml:space="preserve">
+        <source>An email has been sent with a link to reset your password. Note: You can only request a new password once every %tokenLifetime% hours. If you don't receive the email, please check your spam folder or try again.</source>
+        <target state="needs-translation">Ένα ηλεκτρονικό μήνυμα έχει αποσταλεί. Περιέχει το σύνδεσμο που πρέπει να ακολουθήσετε για να επαναφέρετε τον κωδικό σας. Σημείωση: Μπορείτε να ζητήσετε νέο κωδικό μία φορά εντός %tokenLifetime% ωρών. Εάν δεν λάβετε το ηλεκτρονικό μήνυμα ελέγξετε τον φάκελο με τα ανεπιθύμητα μηνύματα η προσπαθήστε ξανά.</target>
       </trans-unit>
       <trans-unit id=".ndupSK" resname="registration.check_email">
         <source>registration.check_email</source>
@@ -1204,6 +1201,30 @@
       <trans-unit id="HNFpvnH" resname="globalActivities">
         <source>globalActivities</source>
         <target state="translated">Επέτρεψε καθολικές ενέργειες</target>
+      </trans-unit>
+      <trans-unit id="EGpYQvx" resname="help">
+        <source>help</source>
+        <target>Τεκμηρίωση</target>
+      </trans-unit>
+      <trans-unit id="oYYDCG5" resname="support">
+        <source>support</source>
+        <target>Υποστήριξη</target>
+      </trans-unit>
+      <trans-unit id="mz4ieCN" resname="donate">
+        <source>donate</source>
+        <target>Δωρίστε</target>
+      </trans-unit>
+      <trans-unit id="cR5DD88" resname="invoice_number_generator.date">
+        <source>invoice_number_generator.date</source>
+        <target state="translated">Ημερομηνία</target>
+      </trans-unit>
+      <trans-unit id="Qh1X4Vu" resname="invoice_number_generator.default">
+        <source>invoice_number_generator.default</source>
+        <target state="translated">Διαμορφωμένη Μορφή</target>
+      </trans-unit>
+      <trans-unit id="UI6nPeP" resname="invoice_number_generator">
+        <source>invoice_number_generator</source>
+        <target state="translated">Γεννήτρια Αριθμού Απόδειξης</target>
       </trans-unit>
     </body>
   </file>

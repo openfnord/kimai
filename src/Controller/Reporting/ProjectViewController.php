@@ -15,7 +15,8 @@ use App\Reporting\ProjectView\ProjectViewForm;
 use App\Reporting\ProjectView\ProjectViewQuery;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class ProjectViewController extends AbstractController
@@ -23,7 +24,7 @@ final class ProjectViewController extends AbstractController
     #[Route(path: '/reporting/project_view', name: 'report_project_view', methods: ['GET', 'POST'])]
     #[IsGranted('report:project')]
     #[IsGranted(new Expression("is_granted('budget_any', 'project')"))]
-    public function __invoke(Request $request, ProjectStatisticService $service)
+    public function __invoke(Request $request, ProjectStatisticService $service): Response
     {
         $dateFactory = $this->getDateTimeFactory();
         $user = $this->getUser();

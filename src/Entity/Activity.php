@@ -10,6 +10,7 @@
 namespace App\Entity;
 
 use App\Export\Annotation as Exporter;
+use App\Validator\Constraints as Constraints;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -26,8 +27,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Serializer\ExclusionPolicy('all')]
 #[Serializer\VirtualProperty('ProjectName', exp: 'object.getProject() === null ? null : object.getProject().getName()', options: [new Serializer\SerializedName('parentTitle'), new Serializer\Type(name: 'string'), new Serializer\Groups(['Activity'])])]
 #[Serializer\VirtualProperty('ProjectAsId', exp: 'object.getProject() === null ? null : object.getProject().getId()', options: [new Serializer\SerializedName('project'), new Serializer\Type(name: 'integer'), new Serializer\Groups(['Activity', 'Team', 'Not_Expanded'])])]
-#[Exporter\Order(['id', 'name', 'project', 'budget', 'timeBudget', 'budgetType', 'color', 'visible', 'comment', 'billable'])]
+#[Exporter\Order(['id', 'name', 'project', 'budget', 'timeBudget', 'budgetType', 'color', 'visible', 'comment', 'billable', 'number'])]
 #[Exporter\Expose(name: 'project', label: 'project', exp: 'object.getProject() === null ? null : object.getProject().getName()')]
+#[Constraints\Activity]
 class Activity implements EntityWithMetaFields, EntityWithBudget
 {
     use BudgetTrait;
@@ -43,8 +45,8 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
     #[Serializer\Groups(['Default'])]
     #[Exporter\Expose(label: 'id', type: 'integer')]
     private ?int $id = null;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Project')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     #[Serializer\Expose]
     #[Serializer\Groups(['Subresource', 'Expanded'])]
     #[OA\Property(ref: '#/components/schemas/ProjectExpanded')]
@@ -54,7 +56,7 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
      */
     #[ORM\Column(name: 'name', type: 'string', length: 150, nullable: false)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max: 150)]
+    #[Assert\Length(min: 2, max: 150)]
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     #[Exporter\Expose(label: 'name')]
@@ -87,7 +89,7 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
      *
      * @var Collection<ActivityMeta>
      */
-    #[ORM\OneToMany(targetEntity: 'App\Entity\ActivityMeta', mappedBy: 'activity', cascade: ['persist'])]
+    #[ORM\OneToMany(mappedBy: 'activity', targetEntity: ActivityMeta::class, cascade: ['persist'])]
     #[Serializer\Expose]
     #[Serializer\Groups(['Activity'])]
     #[Serializer\Type(name: 'array<App\Entity\ActivityMeta>')]
@@ -102,13 +104,19 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
     #[ORM\JoinTable(name: 'kimai2_activities_teams')]
     #[ORM\JoinColumn(name: 'activity_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(name: 'team_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[ORM\ManyToMany(targetEntity: 'App\Entity\Team', cascade: ['persist'], inversedBy: 'activities')]
+    #[ORM\ManyToMany(targetEntity: Team::class, inversedBy: 'activities', cascade: ['persist'])]
     #[Serializer\Expose]
     #[Serializer\Groups(['Activity'])]
     #[OA\Property(type: 'array', items: new OA\Items(ref: '#/components/schemas/Team'))]
     private Collection $teams;
     #[ORM\Column(name: 'invoice_text', type: 'text', nullable: true)]
     private ?string $invoiceText = null;
+    #[ORM\Column(name: 'number', type: 'string', length: 10, nullable: true)]
+    #[Assert\Length(max: 10)]
+    #[Serializer\Expose]
+    #[Serializer\Groups(['Default'])]
+    #[Exporter\Expose(label: 'activity_number')]
+    private ?string $number = null;
 
     public function __construct()
     {
@@ -232,7 +240,7 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
         return $this;
     }
 
-    public function addTeam(Team $team)
+    public function addTeam(Team $team): void
     {
         if ($this->teams->contains($team)) {
             return;
@@ -242,7 +250,7 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
         $team->addActivity($this);
     }
 
-    public function removeTeam(Team $team)
+    public function removeTeam(Team $team): void
     {
         if (!$this->teams->contains($team)) {
             return;
@@ -269,6 +277,16 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
         $this->invoiceText = $invoiceText;
     }
 
+    public function setNumber(?string $number): void
+    {
+        $this->number = $number;
+    }
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
     public function __toString(): string
     {
         return $this->getName();
@@ -276,7 +294,7 @@ class Activity implements EntityWithMetaFields, EntityWithBudget
 
     public function __clone()
     {
-        if ($this->id) {
+        if ($this->id !== null) {
             $this->id = null;
         }
 

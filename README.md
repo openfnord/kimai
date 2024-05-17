@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/kimai/kimai/actions"><img alt="CI Status" src="https://github.com/kimai/kimai/workflows/CI/badge.svg"></a>
+    <a href="https://github.com/kimai/kimai/actions"><img alt="CI Status" src="https://github.com/kimai/kimai/actions/workflows/testing.yaml/badge.svg"></a>
     <a href="https://codecov.io/gh/kimai/kimai"><img alt="Code Coverage" src="https://codecov.io/gh/kimai/kimai/branch/main/graph/badge.svg"></a>
     <a href="https://packagist.org/packages/kimai/kimai"><img alt="Latest stable version" src="https://poser.pugx.org/kimai/kimai/v/stable"></a>
     <a href="https://www.gnu.org/licenses/agpl-3.0.en.html"><img alt="License" src="https://poser.pugx.org/kimai/kimai/license"></a>
@@ -23,12 +23,12 @@ and so much more.
 
 ### Versions
 
-There are two versions of Kimai existing:
+There are two [versions](https://www.kimai.org/documentation/versions.html) of Kimai existing:
 
-- [Version 2](https://github.com/kimai/kimai) — the current stable release (PHP 8.1 only)
-- [Version 1](https://github.com/kimai/kimai/tree/1.x) — the "old" version, in maintenance mode since Jan. 2023 (PHP 7.4, PHP 8.1) 
+- [Version 2](https://github.com/kimai/kimai) — the current stable release (PHP 8.1+)
+- [Version 1](https://github.com/kimai/kimai/tree/1.x) — EOL since mid of 2023 (PHP 7.4) 
 
-If you start fresh, do **not** use Version 1, it won't receive any more updates.
+Do **NOT** use Version 1, it won't get any more updates!
 
 ### Links
 
@@ -38,15 +38,17 @@ If you start fresh, do **not** use Version 1, it won't receive any more updates.
 
 ### Requirements
 
-- PHP 8.1 minimum
+- PHP 8.1.3 minimum
 - MariaDB or MySQL
 - A webserver and subdomain (subdirectory is not supported)
 - PHP extensions: `gd`, `intl`, `json`, `mbstring`, `pdo`, `tokenizer`, `xml`, `xsl`, `zip`
 
+Support for PHP 8.2 and 8.3.
+
 ## Installation
 
-- [Recommended setup](https://www.kimai.org/documentation/installation.html#recommended-setup) — with Git and Composer
-- [Docker](https://hub.docker.com/r/kimai/kimai2) — containerized by [@tobybatch](https://github.com/tobybatch/kimai2)
+- [Native setup](https://www.kimai.org/documentation/installation.html) — with Git and Composer
+- [Docker](https://hub.docker.com/r/kimai/kimai2) — containerized by @tobybatch
 
 There are also documentations for:
 - [developer setups](https://www.kimai.org/documentation/developers.html) — on your local machine
@@ -74,8 +76,6 @@ It is open for changes and input from the community, your [ideas and questions](
 Release versions will be created on a regular basis, every couple of weeks latest.
 Every code change, whether it's a new feature or a bugfix, will be done on the `main` branch.
 
-Until 2.0 is widely adopted, the [1.x branch](https://github.com/kimai/kimai/tree/1.x) will receive (critical) bug and security fixes. 
-
 ## Contributing
 
 You want to contribute to this repository? This is so great!
@@ -83,7 +83,7 @@ The best way to start is to [open a new issue](https://github.com/kimai/kimai/is
 
 In case you want to contribute, but you wouldn't know how, here are some suggestions:
 
-- Spread the word: More user means more people testing and contributing to Kimai, which in turn means better stability and more and better features. Please vote for Kimai on any software platform, you can toot or tweet about it, share it on LinkedIn, Reddit or any of your favorite social media platforms. Every bit helps!
+- Spread the word: Please [write a testimonial for our Wall of love](https://love.kimai.org), vote for Kimai on any software platform, you can toot or tweet about it, share it on LinkedIn, Reddit and any other social media platform!
 - Answer questions: You know the answer to another user's problem? Share your knowledge.
 - Something can be done better? An essential feature is missing? Create a feature request.
 - Report bugs makes Kimai better for everyone.

@@ -52,7 +52,7 @@ final class ReloadCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $io->title('Reloading configurations ...');
+        $io->text('Validating config file syntax ...');
 
         // many users execute the bin/console command from arbitrary locations
         $path = getcwd();
@@ -106,7 +106,7 @@ final class ReloadCommand extends Command
                 ]
             );
 
-            return (int) $cacheResult;
+            return $cacheResult;
         }
 
         $io->success(
@@ -116,7 +116,7 @@ final class ReloadCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function rebuildCaches(string $environment, SymfonyStyle $io, InputInterface $input, OutputInterface $output)
+    private function rebuildCaches(string $environment, SymfonyStyle $io, InputInterface $input, OutputInterface $output): int
     {
         $io->text('Rebuilding your cache, please be patient ...');
 

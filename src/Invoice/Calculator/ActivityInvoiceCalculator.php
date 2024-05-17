@@ -18,13 +18,11 @@ use App\Invoice\InvoiceItem;
  */
 final class ActivityInvoiceCalculator extends AbstractSumInvoiceCalculator implements CalculatorInterface
 {
-    protected function calculateSumIdentifier(ExportableItem $invoiceItem): string
+    public function getIdentifiers(ExportableItem $invoiceItem): array
     {
-        if (null === $invoiceItem->getActivity()) {
-            return '__NULL__';
-        }
-
-        return (string) $invoiceItem->getActivity()->getId();
+        return [
+            $invoiceItem->getActivity()?->getId()
+        ];
     }
 
     protected function mergeSumInvoiceItem(InvoiceItem $invoiceItem, ExportableItem $entry): void

@@ -12,10 +12,11 @@ namespace App\Controller;
 use App\Configuration\LocaleService;
 use App\Entity\User;
 use App\Event\ConfigureMainMenuEvent;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use App\Repository\UserRepository;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -28,7 +29,7 @@ final class HomepageController extends AbstractController
     public const DEFAULT_ROUTE = 'timesheet';
 
     #[Route(path: '', defaults: [], name: 'homepage', methods: ['GET'])]
-    public function indexAction(Request $request, LocaleService $service, EventDispatcherInterface $eventDispatcher): Response
+    public function homepage(Request $request, LocaleService $service, EventDispatcherInterface $eventDispatcher, UserRepository $userRepository): Response
     {
         $user = $this->getUser();
         $userLanguage = $user->getLanguage();
@@ -45,7 +46,7 @@ final class HomepageController extends AbstractController
         // if a user somehow managed to get a wrong locale into hos account (eg. an imported user from Kimai 1)
         // make sure that he will still see a beautiful page and not a 404
         if (!$service->isKnownLocale($userLanguage)) {
-            $userLanguage = $service->getDefaultLocale();
+            $userLanguage = 'en';
         }
 
         $routes = [];
@@ -72,8 +73,13 @@ final class HomepageController extends AbstractController
             try {
                 return $this->redirectToRoute($route, ['_locale' => $language]);
             } catch (\Exception $ex) {
-                $this->logException($ex);
-                // something is wrong with the url parameters ...
+                if ($route === $userRoute) {
+                    // fix invalid routes from old plugins / versions
+                    $user->setPreferenceValue('login_initial_view', 'dashboard');
+                    $userRepository->saveUser($user);
+                } else {
+                    $this->logException($ex);
+                }
             }
         }
 

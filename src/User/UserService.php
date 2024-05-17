@@ -22,7 +22,7 @@ use App\Event\UserUpdatePreEvent;
 use App\Repository\UserRepository;
 use App\Validator\ValidationFailedException;
 use InvalidArgumentException;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -37,11 +37,11 @@ class UserService
     private array $cache = [];
 
     public function __construct(
-        private UserRepository $repository,
-        private EventDispatcherInterface $dispatcher,
-        private ValidatorInterface $validator,
-        private SystemConfiguration $configuration,
-        private UserPasswordHasherInterface $passwordHasher
+        private readonly UserRepository $repository,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly ValidatorInterface $validator,
+        private readonly SystemConfiguration $configuration,
+        private readonly UserPasswordHasherInterface $passwordHasher
     ) {
     }
 
@@ -70,6 +70,18 @@ class UserService
         return $user;
     }
 
+    public function saveUser(User $user): User
+    {
+        if ($user->getId() === null) {
+            return $this->saveNewUser($user);
+        } else {
+            return $this->updateUser($user);
+        }
+    }
+
+    /**
+     * @internal will be made private soon
+     */
     public function saveNewUser(User $user): User
     {
         if (null !== $user->getId()) {
@@ -127,7 +139,7 @@ class UserService
         return $user;
     }
 
-    public function findUserByUsernameOrEmail(string $usernameOrEmail): ?User
+    public function findUserByUsernameOrEmail(string $usernameOrEmail): User
     {
         return $this->repository->loadUserByIdentifier($usernameOrEmail);
     }
@@ -140,6 +152,11 @@ class UserService
     public function findUserByName(string $name): ?User
     {
         return $this->repository->findByUsername($name);
+    }
+
+    public function findUserByDisplayName(string $name): ?User
+    {
+        return $this->repository->findOneBy(['alias' => $name]);
     }
 
     public function findUserByConfirmationToken(string $token): ?User

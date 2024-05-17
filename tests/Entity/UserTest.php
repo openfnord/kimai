@@ -27,7 +27,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class UserTest extends TestCase
 {
-    public function testDefaultValues()
+    public function testDefaultValues(): void
     {
         $user = new User();
         self::assertInstanceOf(EquatableInterface::class, $user);
@@ -43,6 +43,7 @@ class UserTest extends TestCase
         self::assertNull($user->getPasswordRequestedAt());
         self::assertFalse($user->hasTotpSecret());
         self::assertNull($user->getTotpSecret());
+        self::assertEquals(User::DEFAULT_LANGUAGE, $user->getLanguage());
         self::assertEquals(User::DEFAULT_LANGUAGE, $user->getLocale());
         self::assertFalse($user->hasTeamAssignment());
         self::assertFalse($user->canSeeAllData());
@@ -83,11 +84,29 @@ class UserTest extends TestCase
         self::assertEquals(0, $user->getHolidaysPerYear());
         self::assertFalse($user->hasWorkHourConfiguration());
         self::assertNull($user->getPublicHolidayGroup());
+        self::assertFalse($user->hasSupervisor());
+        self::assertNull($user->getSupervisor());
     }
 
     public function testWorkContract(): void
     {
         $user = new User();
+
+        $monday = new \DateTime('2023-05-08 12:00:00', new \DateTimeZone('Europe/Berlin'));
+        $tuesday = new \DateTime('2023-05-09 12:00:00', new \DateTimeZone('Europe/Berlin'));
+        $wednesday = new \DateTime('2023-05-10 12:00:00', new \DateTimeZone('Europe/Berlin'));
+        $thursday = new \DateTime('2023-05-11 12:00:00', new \DateTimeZone('Europe/Berlin'));
+        $friday = new \DateTime('2023-05-12 12:00:00', new \DateTimeZone('Europe/Berlin'));
+        $saturday = new \DateTime('2023-05-13 12:00:00', new \DateTimeZone('Europe/Berlin'));
+        $sunday = new \DateTime('2023-05-14 12:00:00', new \DateTimeZone('Europe/Berlin'));
+
+        self::assertFalse($user->isWorkDay($monday));
+        self::assertFalse($user->isWorkDay($tuesday));
+        self::assertFalse($user->isWorkDay($wednesday));
+        self::assertFalse($user->isWorkDay($thursday));
+        self::assertFalse($user->isWorkDay($friday));
+        self::assertFalse($user->isWorkDay($saturday));
+        self::assertFalse($user->isWorkDay($sunday));
 
         $user->setWorkHoursMonday(7200);
         self::assertTrue($user->hasWorkHourConfiguration());
@@ -97,7 +116,7 @@ class UserTest extends TestCase
         $user->setWorkHoursFriday(7600);
         $user->setWorkHoursSaturday(7700);
         $user->setWorkHoursSunday(7800);
-        $user->setHolidaysPerYear(10);
+        $user->setHolidaysPerYear(10.7);
         self::assertTrue($user->hasWorkHourConfiguration());
 
         self::assertEquals(7200, $user->getWorkHoursMonday());
@@ -107,15 +126,23 @@ class UserTest extends TestCase
         self::assertEquals(7600, $user->getWorkHoursFriday());
         self::assertEquals(7700, $user->getWorkHoursSaturday());
         self::assertEquals(7800, $user->getWorkHoursSunday());
-        self::assertEquals(10, $user->getHolidaysPerYear());
+        self::assertEquals(10.5, $user->getHolidaysPerYear());
 
-        self::assertEquals(7200, $user->getWorkHoursForDay(new \DateTime('2023-05-08 12:00:00', new \DateTimeZone('Europe/Berlin'))));
-        self::assertEquals(7300, $user->getWorkHoursForDay(new \DateTime('2023-05-09 12:00:00', new \DateTimeZone('Europe/Berlin'))));
-        self::assertEquals(7400, $user->getWorkHoursForDay(new \DateTime('2023-05-10 12:00:00', new \DateTimeZone('Europe/Berlin'))));
-        self::assertEquals(7500, $user->getWorkHoursForDay(new \DateTime('2023-05-11 12:00:00', new \DateTimeZone('Europe/Berlin'))));
-        self::assertEquals(7600, $user->getWorkHoursForDay(new \DateTime('2023-05-12 12:00:00', new \DateTimeZone('Europe/Berlin'))));
-        self::assertEquals(7700, $user->getWorkHoursForDay(new \DateTime('2023-05-13 12:00:00', new \DateTimeZone('Europe/Berlin'))));
-        self::assertEquals(7800, $user->getWorkHoursForDay(new \DateTime('2023-05-14 12:00:00', new \DateTimeZone('Europe/Berlin'))));
+        self::assertEquals(7200, $user->getWorkHoursForDay($monday));
+        self::assertEquals(7300, $user->getWorkHoursForDay($tuesday));
+        self::assertEquals(7400, $user->getWorkHoursForDay($wednesday));
+        self::assertEquals(7500, $user->getWorkHoursForDay($thursday));
+        self::assertEquals(7600, $user->getWorkHoursForDay($friday));
+        self::assertEquals(7700, $user->getWorkHoursForDay($saturday));
+        self::assertEquals(7800, $user->getWorkHoursForDay($sunday));
+
+        self::assertTrue($user->isWorkDay($monday));
+        self::assertTrue($user->isWorkDay($tuesday));
+        self::assertTrue($user->isWorkDay($wednesday));
+        self::assertTrue($user->isWorkDay($thursday));
+        self::assertTrue($user->isWorkDay($friday));
+        self::assertTrue($user->isWorkDay($saturday));
+        self::assertTrue($user->isWorkDay($sunday));
 
         $user->setPublicHolidayGroup('10');
         self::assertEquals('10', $user->getPublicHolidayGroup());
@@ -139,7 +166,7 @@ class UserTest extends TestCase
         self::assertTrue($sut->hasColor());
     }
 
-    public function testWizards()
+    public function testWizards(): void
     {
         $sut = new User();
         // internal name may not be changed
@@ -155,7 +182,7 @@ class UserTest extends TestCase
         self::assertTrue($sut->hasSeenWizard('profile'));
     }
 
-    public function testAuth()
+    public function testAuth(): void
     {
         $user = new User();
 
@@ -183,7 +210,7 @@ class UserTest extends TestCase
         self::assertTrue($user->isInternalUser());
     }
 
-    public function testDatetime()
+    public function testDatetime(): void
     {
         $date = new \DateTime('+1 day');
         $user = new User();
@@ -191,9 +218,9 @@ class UserTest extends TestCase
         self::assertEquals($date, $user->getRegisteredAt());
     }
 
-    public function testPasswordRequestedAt()
+    public function testPasswordRequestedAt(): void
     {
-        $date = new \DateTime('-60 minutes');
+        $date = new \DateTimeImmutable('-60 minutes');
         $sut = new User();
         self::assertFalse($sut->isPasswordRequestNonExpired(3599));
 
@@ -205,7 +232,7 @@ class UserTest extends TestCase
         self::assertTrue($sut->isPasswordRequestNonExpired(3610));
     }
 
-    public function testPreferences()
+    public function testPreferences(): void
     {
         $user = new User();
         self::assertNull($user->getPreference('test'));
@@ -228,7 +255,7 @@ class UserTest extends TestCase
         self::assertTrue($user->isExportDecimal());
     }
 
-    public function testDisplayName()
+    public function testDisplayName(): void
     {
         $user = new User();
 
@@ -244,7 +271,7 @@ class UserTest extends TestCase
         self::assertEquals('foo', (string) $user);
     }
 
-    public function testGetUsername()
+    public function testGetUsername(): void
     {
         $user = new User();
 
@@ -260,18 +287,25 @@ class UserTest extends TestCase
         self::assertEquals('foo', (string) $user);
     }
 
-    public function testGetLocale()
+    public function testGetLocale(): void
     {
-        $sut = new User();
-        self::assertEquals(User::DEFAULT_LANGUAGE, $sut->getLocale());
+        $user = new User();
+        self::assertEquals(User::DEFAULT_LANGUAGE, $user->getLocale());
 
-        $language = new UserPreference(UserPreference::LOCALE, 'fr');
-        $sut->addPreference($language);
-
-        self::assertEquals('fr', $sut->getLocale());
+        self::assertEquals('en', $user->getLanguage());
+        self::assertEquals('en', $user->getLocale());
+        $user->setLanguage('it');
+        self::assertEquals('it', $user->getLanguage());
+        self::assertEquals('it', $user->getLocale());
+        $user->setLocale('de');
+        self::assertEquals('it', $user->getLanguage());
+        self::assertEquals('de', $user->getLocale());
+        $user->setPreferenceValue(UserPreference::LOCALE, 'hu');
+        self::assertEquals('it', $user->getLanguage());
+        self::assertEquals('hu', $user->getLocale());
     }
 
-    public function testTeams()
+    public function testTeams(): void
     {
         $sut = new User();
         $user = new User();
@@ -314,7 +348,7 @@ class UserTest extends TestCase
         self::assertFalse($sut->hasTeamAssignment());
     }
 
-    public function testRoles()
+    public function testRoles(): void
     {
         $sut = new User();
         self::assertFalse($sut->canSeeAllData());
@@ -357,7 +391,7 @@ class UserTest extends TestCase
      *
      * @see #1562
      */
-    public function testMaxLength()
+    public function testMaxLength(): void
     {
         $sut = new User();
         $sut->setAlias('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
@@ -372,7 +406,7 @@ class UserTest extends TestCase
         self::assertEquals(50, mb_strlen($sut->getTitle()));
     }
 
-    public function testPreferencesCollectionIsCreatedOnBrokenUser()
+    public function testPreferencesCollectionIsCreatedOnBrokenUser(): void
     {
         // this code is only used in some rare edge cases, maybe even only in development ...
         // lets keep it, as it occured during the work on SAML authentication
@@ -390,7 +424,7 @@ class UserTest extends TestCase
         self::assertEquals('foobar', $sut->getPreferenceValue('test'));
     }
 
-    public function testCanSeeAllData()
+    public function testCanSeeAllData(): void
     {
         $sut = new User();
         $sut->addRole(User::ROLE_USER);
@@ -400,7 +434,7 @@ class UserTest extends TestCase
         self::assertFalse($sut->initCanSeeAllData(true));
     }
 
-    public function testSystemAccount()
+    public function testSystemAccount(): void
     {
         $sut = new User();
         self::assertFalse($sut->isSystemAccount());
@@ -410,7 +444,7 @@ class UserTest extends TestCase
         self::assertFalse($sut->isSystemAccount());
     }
 
-    public function testExportAnnotations()
+    public function testExportAnnotations(): void
     {
         $sut = new AnnotationExtractor();
 
@@ -449,7 +483,7 @@ class UserTest extends TestCase
         }
     }
 
-    public function testEqualsTo()
+    public function testEqualsTo(): void
     {
         $sut = new User();
         $sut->setUserIdentifier('foo');
@@ -479,7 +513,7 @@ class UserTest extends TestCase
         self::assertTrue($sut2->isEqualTo($sut));
     }
 
-    public function testSerialize()
+    public function testSerialize(): void
     {
         $sut = new User();
         $sut->setPassword('ABC-1234567890');
@@ -509,7 +543,7 @@ class UserTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
-    public function testTeamMemberships()
+    public function testTeamMemberships(): void
     {
         $team = new Team('Foo');
 
@@ -564,12 +598,27 @@ class UserTest extends TestCase
         self::assertCount(1, $sut->getMemberships());
     }
 
-    public function testTeamMembershipsException()
+    public function testTeamMembershipsException(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $sut = new User();
         $member = new TeamMember();
         $member->setUser(new User());
         $sut->addMembership($member);
+    }
+
+    public function testSupervisor(): void
+    {
+        $user = new User();
+        self::assertFalse($user->hasSupervisor());
+        self::assertNull($user->getSupervisor());
+
+        $supervisor = new User();
+        $supervisor->setTitle('Cool boss');
+
+        $user->setSupervisor($supervisor);
+        self::assertTrue($user->hasSupervisor());
+        self::assertNotNull($user->getSupervisor());
+        self::assertSame($supervisor, $user->getSupervisor());
     }
 }

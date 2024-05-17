@@ -15,7 +15,7 @@ use App\Utils\PageSetup;
 use App\Utils\ReleaseVersion;
 use Composer\InstalledVersions;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -265,6 +265,7 @@ final class DoctorController extends AbstractController
             'sys_temp_dir',
             'date.timezone',
             'session.gc_maxlifetime',
+            'disable_functions'
         ];
 
         $settings = [];

@@ -56,12 +56,12 @@ class TotalsCustomerTest extends AbstractWidgetTest
         ];
     }
 
-    protected function assertDefaultData(AbstractWidgetType $sut)
+    protected function assertDefaultData(AbstractWidgetType $sut): void
     {
         self::assertEquals(1, $sut->getData());
     }
 
-    public function testData()
+    public function testData(): void
     {
         $user = new User();
         $user->setAlias('foo');

@@ -32,14 +32,11 @@ final class SystemConfiguration
 
     /**
      * Set an array item to a given value using "dot" notation.
-     *
      * If no key is given to the method, the entire array will be replaced.
      *
-     * @param string $key
-     * @param mixed $value
-     * @return void
+     * @internal
      */
-    private function set(string $key, $value): void
+    public function set(string $key, mixed $value): void
     {
         if (\array_key_exists($key, $this->settings)) {
             if (\is_bool($this->settings[$key])) {
@@ -125,33 +122,34 @@ final class SystemConfiguration
 
     // ========== Array access methods ==========
 
+    /**
+     * @deprecated since 2.0.35
+     */
     public function offsetExists($offset): bool
     {
+        @trigger_error('The method "SystemConfiguration::offsetExists()" is deprecated, use "has()" instead', E_USER_DEPRECATED);
+
         return $this->has($offset);
     }
 
+    /**
+     * @deprecated since 2.0.35
+     */
     public function offsetGet($offset): mixed
     {
+        @trigger_error('The method "SystemConfiguration::offsetGet()" is deprecated, use "find()" instead', E_USER_DEPRECATED);
+
         return $this->find($offset);
     }
 
     /**
-     * @param mixed $offset
-     * @param mixed $value
-     * @throws \BadMethodCallException
+     * @deprecated since 2.0.35
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        $this->set($offset, $value);
-    }
+        @trigger_error('The method "SystemConfiguration::offsetSet()" is deprecated, use "set()" instead', E_USER_DEPRECATED);
 
-    /**
-     * @param mixed $offset
-     * @throws \BadMethodCallException
-     */
-    public function offsetUnset($offset)
-    {
-        throw new \BadMethodCallException('SystemBundleConfiguration does not support offsetUnset()');
+        $this->set($offset, $value);
     }
 
     // ========== Authentication configurations ==========
@@ -398,7 +396,7 @@ final class SystemConfiguration
 
     public function getTimesheetTrackingMode(): string
     {
-        return (string) $this->find('timesheet.mode');
+        return $this->getString('timesheet.mode', 'default');
     }
 
     public function isTimesheetMarkdownEnabled(): bool
@@ -441,19 +439,6 @@ final class SystemConfiguration
         return (int) $this->find('timesheet.rounding.default.duration');
     }
 
-    private function getIncrement(string $key, int $fallback, int $min = 1): int
-    {
-        $config = $this->find($key);
-
-        if ($config === null || trim($config) === '') {
-            return $fallback;
-        }
-
-        $config = (int) $config;
-
-        return max($config, $min);
-    }
-
     public function getTimesheetIncrementDuration(): int
     {
         return $this->getIncrement('timesheet.duration_increment', $this->getTimesheetDefaultRoundingDuration(), 0);
@@ -466,7 +451,7 @@ final class SystemConfiguration
 
     public function getQuickEntriesRecentAmount(): int
     {
-        return $this->getIncrement('quick_entry.recent_activities', 5, 5);
+        return $this->getIncrement('quick_entry.recent_activities', 5, 0);
     }
 
     // ========== Company configurations ==========
@@ -494,10 +479,10 @@ final class SystemConfiguration
         return (bool) $this->find('theme.avatar_url');
     }
 
-    public function getThemeColorChoices(): ?string
+    public function getThemeColorChoices(): string
     {
         $config = $this->find('theme.color_choices');
-        if (!empty($config)) {
+        if (\is_string($config) && $config !== '') {
             return $config;
         }
 
@@ -509,5 +494,37 @@ final class SystemConfiguration
     public function isProjectCopyTeamsOnCreate(): bool
     {
         return $this->find('project.copy_teams_on_create') === true;
+    }
+
+    // ========== Helper functions ==========
+
+    private function getIncrement(string $key, int $fallback, int $min = 1): int
+    {
+        $config = $this->find($key);
+
+        if ($config === null || trim($config) === '') {
+            return $fallback;
+        }
+
+        $config = (int) $config;
+
+        return max($config, $min);
+    }
+
+    private function getString(string $key, string $fallback): string
+    {
+        $config = $this->find($key);
+
+        if ($config === null) {
+            return $fallback;
+        }
+
+        $config = (string) $config;
+
+        if (trim($config) === '') {
+            return $fallback;
+        }
+
+        return $config;
     }
 }

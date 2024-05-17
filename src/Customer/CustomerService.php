@@ -22,16 +22,16 @@ use App\Repository\Query\CustomerQuery;
 use App\Utils\NumberGenerator;
 use App\Validator\ValidationFailedException;
 use InvalidArgumentException;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class CustomerService
 {
     public function __construct(
-        private CustomerRepository $repository,
-        private SystemConfiguration $configuration,
-        private ValidatorInterface $validator,
-        private EventDispatcherInterface $dispatcher
+        private readonly CustomerRepository $repository,
+        private readonly SystemConfiguration $configuration,
+        private readonly ValidatorInterface $validator,
+        private readonly EventDispatcherInterface $dispatcher
     ) {
     }
 
@@ -74,7 +74,6 @@ final class CustomerService
     }
 
     /**
-     * @param Customer $customer
      * @param string[] $groups
      * @throws ValidationFailedException
      */
@@ -121,20 +120,35 @@ final class CustomerService
         return $this->repository->countCustomer($visible);
     }
 
-    public function calculateNextCustomerNumber(): string
+    private function calculateNextCustomerNumber(): ?string
     {
         $format = $this->configuration->find('customer.number_format');
         if (empty($format) || !\is_string($format)) {
-            $format = '{cc,4}';
+            return null;
         }
 
-        $numberGenerator = new NumberGenerator($format, function (string $originalFormat, string $format, int $increaseBy): string|int {
-            return match ($format) {
-                'cc' => $this->repository->count([]) + $increaseBy,
-                default => $originalFormat,
-            };
-        });
+        // we cannot use max(number) because a varchar column returns unexpected results
+        $start = $this->repository->countCustomer();
+        $i = 0;
 
-        return $numberGenerator->getNumber();
+        do {
+            $start++;
+
+            $numberGenerator = new NumberGenerator($format, function (string $originalFormat, string $format, int $increaseBy) use ($start): string|int {
+                return match ($format) {
+                    'cc' => $start + $increaseBy,
+                    default => $originalFormat,
+                };
+            });
+
+            $number = $numberGenerator->getNumber();
+            $customer = $this->findCustomerByNumber($number);
+        } while ($customer !== null && $i++ < 100);
+
+        if ($customer !== null) {
+            return null;
+        }
+
+        return $number;
     }
 }

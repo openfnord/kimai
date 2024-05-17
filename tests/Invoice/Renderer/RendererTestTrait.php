@@ -26,6 +26,7 @@ use App\Invoice\DefaultInvoiceFormatter;
 use App\Invoice\InvoiceFormatter;
 use App\Invoice\InvoiceModel;
 use App\Invoice\NumberGenerator\DateNumberGenerator;
+use App\Invoice\NumberGeneratorInterface;
 use App\Invoice\Renderer\AbstractRenderer;
 use App\Model\InvoiceDocument;
 use App\Repository\InvoiceRepository;
@@ -65,6 +66,7 @@ trait RendererTestTrait
                 'date' => 'yy.MM.dd',
                 'time' => 'H:i',
                 'rtl' => false,
+                'translation' => true,
             ]
         ];
 
@@ -238,11 +240,8 @@ trait RendererTestTrait
         $query->setEnd(new \DateTime());
         $query->setProjects([$project, $project2]);
 
-        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel($this->getFormatter());
-        $model->setCustomer($customer);
-        $model->setTemplate($template);
+        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel($this->getFormatter(), $customer, $template, $query);
         $model->addEntries($entries);
-        $model->setQuery($query);
         $model->setUser($user);
 
         $calculator = new DefaultCalculator();
@@ -258,7 +257,7 @@ trait RendererTestTrait
         return $model;
     }
 
-    private function getNumberGeneratorSut()
+    private function getNumberGeneratorSut(): NumberGeneratorInterface
     {
         $repository = $this->createMock(InvoiceRepository::class);
         $repository
@@ -326,11 +325,8 @@ trait RendererTestTrait
         $query->setBegin(new \DateTime());
         $query->setEnd(new \DateTime());
 
-        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel($this->getFormatter());
-        $model->setCustomer($customer);
-        $model->setTemplate($template);
+        $model = (new InvoiceModelFactoryFactory($this))->create()->createModel($this->getFormatter(), $customer, $template, $query);
         $model->addEntries($entries);
-        $model->setQuery($query);
         $model->setUser($user);
 
         $calculator = new DefaultCalculator();

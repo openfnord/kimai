@@ -29,7 +29,7 @@ use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\QueryBuilder;
 
 /**
- * @extends \Doctrine\ORM\EntityRepository<Customer>
+ * @extends EntityRepository<Customer>
  */
 class CustomerRepository extends EntityRepository
 {
@@ -55,10 +55,6 @@ class CustomerRepository extends EntityRepository
         return $customers;
     }
 
-    /**
-     * @param Customer $customer
-     * @throws ORMException
-     */
     public function saveCustomer(Customer $customer): void
     {
         $entityManager = $this->getEntityManager();
@@ -75,7 +71,7 @@ class CustomerRepository extends EntityRepository
         return $this->count([]);
     }
 
-    private function addPermissionCriteria(QueryBuilder $qb, ?User $user = null, array $teams = [])
+    public function addPermissionCriteria(QueryBuilder $qb, ?User $user = null, array $teams = []): void
     {
         $permissions = $this->getPermissionCriteria($qb, $user, $teams);
         if ($permissions->count() > 0) {
@@ -124,9 +120,6 @@ class CustomerRepository extends EntityRepository
 
     /**
      * Returns a query builder that is used for CustomerType and your own 'query_builder' option.
-     *
-     * @param CustomerFormTypeQuery $query
-     * @return QueryBuilder
      */
     public function getQueryBuilderForFormType(CustomerFormTypeQuery $query): QueryBuilder
     {
@@ -177,6 +170,13 @@ class CustomerRepository extends EntityRepository
             ->from(Customer::class, 'c')
         ;
 
+        if ($query->getCountry() !== null) {
+            $qb
+                ->andWhere($qb->expr()->eq('c.country', ':country'))
+                ->setParameter('country', $query->getCountry())
+            ;
+        }
+
         foreach ($query->getOrderGroups() as $orderBy => $order) {
             switch ($orderBy) {
                 case 'vat_id':
@@ -224,11 +224,7 @@ class CustomerRepository extends EntityRepository
 
     public function getPagerfantaForQuery(CustomerQuery $query): Pagination
     {
-        $paginator = new Pagination($this->getPaginatorForQuery($query));
-        $paginator->setMaxPerPage($query->getPageSize());
-        $paginator->setCurrentPage($query->getPage());
-
-        return $paginator;
+        return new Pagination($this->getPaginatorForQuery($query), $query);
     }
 
     public function countCustomersForQuery(CustomerQuery $query): int
@@ -253,7 +249,6 @@ class CustomerRepository extends EntityRepository
     }
 
     /**
-     * @param CustomerQuery $query
      * @return Customer[]
      */
     public function getCustomersForQuery(CustomerQuery $query): iterable
@@ -265,12 +260,7 @@ class CustomerRepository extends EntityRepository
         return $paginator->getAll();
     }
 
-    /**
-     * @param Customer $delete
-     * @param Customer|null $replace
-     * @throws \Doctrine\ORM\Exception\ORMException
-     */
-    public function deleteCustomer(Customer $delete, ?Customer $replace = null)
+    public function deleteCustomer(Customer $delete, ?Customer $replace = null): void
     {
         $em = $this->getEntityManager();
         $em->beginTransaction();
@@ -312,14 +302,14 @@ class CustomerRepository extends EntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function saveComment(CustomerComment $comment)
+    public function saveComment(CustomerComment $comment): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->persist($comment);
         $entityManager->flush();
     }
 
-    public function deleteComment(CustomerComment $comment)
+    public function deleteComment(CustomerComment $comment): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->remove($comment);

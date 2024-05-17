@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class TagArrayToStringTransformerTest extends TestCase
 {
-    public function testTransform()
+    public function testTransform(): void
     {
         $results = [
             (new Tag())->setName('foo'),
@@ -28,7 +28,7 @@ class TagArrayToStringTransformerTest extends TestCase
 
         $repository = $this->getMockBuilder(TagRepository::class)->disableOriginalConstructor()->getMock();
 
-        $sut = new TagArrayToStringTransformer($repository);
+        $sut = new TagArrayToStringTransformer($repository, true);
 
         $this->assertEquals('', $sut->transform([]));
         $this->assertEquals('', $sut->transform(null));
@@ -38,17 +38,19 @@ class TagArrayToStringTransformerTest extends TestCase
         $this->assertEquals('foo, bar', $actual);
     }
 
-    public function testReverseTransform()
+    public function testReverseTransform(): void
     {
         $results = [
             (new Tag())->setName('foo'),
             (new Tag())->setName('bar'),
         ];
 
-        $repository = $this->getMockBuilder(TagRepository::class)->onlyMethods(['findBy'])->disableOriginalConstructor()->getMock();
+        $repository = $this->getMockBuilder(TagRepository::class)
+            ->onlyMethods(['findBy', 'saveTag'])
+            ->disableOriginalConstructor()->getMock();
         $repository->expects($this->once())->method('findBy')->willReturn($results);
 
-        $sut = new TagArrayToStringTransformer($repository);
+        $sut = new TagArrayToStringTransformer($repository, true);
 
         $this->assertEquals([], $sut->reverseTransform(''));
         $this->assertEquals([], $sut->reverseTransform(null));

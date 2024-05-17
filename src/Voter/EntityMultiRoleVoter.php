@@ -30,6 +30,7 @@ final class EntityMultiRoleVoter extends Voter
         'budget_time',
         'budget_any',
         'details',
+        'listing',
     ];
     private const ALLOWED_SUBJECTS = [
         'customer',
@@ -37,17 +38,22 @@ final class EntityMultiRoleVoter extends Voter
         'activity',
     ];
 
-    public function __construct(private RolePermissionManager $permissionManager)
+    public function __construct(private readonly RolePermissionManager $permissionManager)
     {
+    }
+
+    public function supportsAttribute(string $attribute): bool
+    {
+        return \in_array($attribute, self::ALLOWED_ATTRIBUTES, true);
     }
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!\in_array($attribute, self::ALLOWED_ATTRIBUTES)) {
+        if (!$this->supportsAttribute($attribute)) {
             return false;
         }
 
-        if (\is_string($subject) && \in_array($subject, self::ALLOWED_SUBJECTS)) {
+        if (\is_string($subject) && \in_array($subject, self::ALLOWED_SUBJECTS, true)) {
             return true;
         }
 
@@ -68,7 +74,7 @@ final class EntityMultiRoleVoter extends Voter
 
         $suffix = null;
 
-        if (\is_string($subject) && \in_array($subject, self::ALLOWED_SUBJECTS)) {
+        if (\is_string($subject) && \in_array($subject, self::ALLOWED_SUBJECTS, true)) {
             $suffix = $subject;
         } elseif ($subject instanceof Activity) {
             $suffix = 'activity';
@@ -99,6 +105,13 @@ final class EntityMultiRoleVoter extends Voter
             $permissions[] = 'time_teamlead';
             $permissions[] = 'time_team';
         }
+
+        if ($attribute === 'listing') {
+            $permissions[] = 'view';
+            $permissions[] = 'view_team';
+            $permissions[] = 'view_teamlead';
+        }
+
         foreach ($permissions as $permission) {
             if ($this->permissionManager->hasRolePermission($user, $permission . '_' . $suffix)) {
                 return true;

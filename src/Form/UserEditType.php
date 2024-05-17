@@ -12,9 +12,11 @@ namespace App\Form;
 use App\Configuration\SystemConfiguration;
 use App\Entity\User;
 use App\Form\Type\AvatarType;
-use App\Form\Type\LanguageType;
 use App\Form\Type\MailType;
 use App\Form\Type\TimezoneType;
+use App\Form\Type\UserLanguageType;
+use App\Form\Type\UserLocaleType;
+use App\Form\Type\UserType;
 use App\Form\Type\YesNoType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -35,20 +37,34 @@ class UserEditType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('alias', TextType::class, [
-                'label' => 'alias',
-                'required' => false,
-            ])
-            ->add('title', TextType::class, [
-                'label' => 'title',
-                'required' => false,
-            ])
-            ->add('accountNumber', TextType::class, [
-                'label' => 'account_number',
-                'required' => false,
-            ])
-        ;
+        /** @var User|null $user */
+        $user = null;
+        if (\array_key_exists('data', $options)) {
+            $user = $options['data'];
+        }
+
+        if ($options['include_username']) {
+            $builder->add('username', TextType::class, [
+                'label' => 'user_identifier',
+                'help' => 'user_identifier.help',
+                'required' => true,
+            ]);
+        }
+
+        $builder->add('alias', TextType::class, [
+            'label' => 'alias',
+            'required' => false,
+        ]);
+
+        $builder->add('title', TextType::class, [
+            'label' => 'title',
+            'required' => false,
+        ]);
+
+        $builder->add('accountNumber', TextType::class, [
+            'label' => 'account_number',
+            'required' => false,
+        ]);
 
         if ($this->configuration->isThemeAllowAvatarUrls()) {
             $builder->add('avatar', AvatarType::class, [
@@ -61,7 +77,11 @@ class UserEditType extends AbstractType
         $builder->add('email', MailType::class);
 
         if ($options['include_preferences']) {
-            $builder->add('language', LanguageType::class, [
+            $builder->add('language', UserLanguageType::class, [
+                'required' => true,
+            ]);
+
+            $builder->add('locale', UserLocaleType::class, [
                 'required' => true,
             ]);
 
@@ -75,12 +95,28 @@ class UserEditType extends AbstractType
                 'label' => 'active',
                 'help' => 'active.help'
             ]);
+
+            $builder->add('systemAccount', YesNoType::class, [
+                'label' => 'system_account',
+                'help' => 'system_account.help',
+            ]);
         }
 
-        $builder->add('systemAccount', YesNoType::class, [
-            'label' => 'system_account',
-            'help' => 'system_account.help',
-        ]);
+        if ($options['include_supervisor']) {
+            $builder->add('supervisor', UserType::class, [
+                'required' => false,
+                'label' => 'supervisor',
+                'ignore_users' => ($user instanceof User && $user->getId() !== null ? [$user] : []),
+            ]);
+        }
+
+        if ($options['include_password_reset']) {
+            $builder->add('requiresPasswordReset', YesNoType::class, [
+                'label' => 'force_password_change',
+                'help' => 'force_password_change_help',
+                'required' => false,
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -93,6 +129,9 @@ class UserEditType extends AbstractType
             'csrf_token_id' => 'edit_user_profile',
             'include_active_flag' => true,
             'include_preferences' => true,
+            'include_supervisor' => true,
+            'include_username' => false,
+            'include_password_reset' => true,
         ]);
     }
 }

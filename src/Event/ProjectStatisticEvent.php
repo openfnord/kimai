@@ -14,16 +14,14 @@ use App\Model\ProjectStatistic;
 
 final class ProjectStatisticEvent extends AbstractProjectEvent
 {
-    private $statistic;
-    private $begin;
-    private $end;
-
-    public function __construct(Project $project, ProjectStatistic $statistic, \DateTime $begin = null, \DateTime $end = null)
+    public function __construct(
+        Project $project,
+        private readonly ProjectStatistic $statistic,
+        private readonly ?\DateTimeInterface $begin = null,
+        private readonly ?\DateTimeInterface $end = null
+    )
     {
         parent::__construct($project);
-        $this->statistic = $statistic;
-        $this->begin = $begin;
-        $this->end = $end;
     }
 
     public function getStatistic(): ProjectStatistic
@@ -31,12 +29,12 @@ final class ProjectStatisticEvent extends AbstractProjectEvent
         return $this->statistic;
     }
 
-    public function getBegin(): ?\DateTime
+    public function getBegin(): ?\DateTimeInterface
     {
         return $this->begin;
     }
 
-    public function getEnd(): ?\DateTime
+    public function getEnd(): ?\DateTimeInterface
     {
         return $this->end;
     }

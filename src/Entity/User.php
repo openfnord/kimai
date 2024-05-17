@@ -9,7 +9,6 @@
 
 namespace App\Entity;
 
-use App\Constants;
 use App\Export\Annotation as Exporter;
 use App\Utils\StringHelper;
 use App\Validator\Constraints as Constraints;
@@ -43,9 +42,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Exporter\Expose(name: 'username', label: 'username', exp: 'object.getUserIdentifier()')]
 #[Exporter\Expose(name: 'timezone', label: 'timezone', exp: 'object.getTimezone()')]
 #[Exporter\Expose(name: 'language', label: 'language', exp: 'object.getLanguage()')]
-#[Exporter\Expose(name: 'last_login', label: 'lastLogin', exp: 'object.getLastLogin()', type: 'datetime')]
-#[Exporter\Expose(name: 'roles', label: 'roles', exp: 'object.getRoles()', type: 'array')]
-#[Exporter\Expose(name: 'active', label: 'active', exp: 'object.isEnabled()', type: 'boolean')]
+#[Exporter\Expose(name: 'last_login', label: 'lastLogin', type: 'datetime', exp: 'object.getLastLogin()')]
+#[Exporter\Expose(name: 'roles', label: 'roles', type: 'array', exp: 'object.getRoles()')]
+#[Exporter\Expose(name: 'active', label: 'active', type: 'boolean', exp: 'object.isEnabled()')]
 #[Constraints\User(groups: ['UserCreate', 'Registration', 'Default', 'Profile'])]
 class User implements UserInterface, EquatableInterface, ThemeUserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
 {
@@ -55,7 +54,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
     public const ROLE_SUPER_ADMIN = 'ROLE_SUPER_ADMIN';
 
     public const DEFAULT_ROLE = self::ROLE_USER;
-    public const DEFAULT_LANGUAGE = Constants::DEFAULT_LOCALE;
+    public const DEFAULT_LANGUAGE = 'en';
     public const DEFAULT_FIRST_WEEKDAY = 'monday';
 
     public const AUTH_INTERNAL = 'kimai';
@@ -128,15 +127,15 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
      *
      * @var Collection<UserPreference>|null
      */
-    #[ORM\OneToMany(targetEntity: 'App\Entity\UserPreference', mappedBy: 'user', cascade: ['persist'])]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserPreference::class, cascade: ['persist'])]
     private ?Collection $preferences = null;
     /**
      * List of all team memberships.
      *
      * @var Collection<TeamMember>
      */
-    #[ORM\OneToMany(targetEntity: 'App\Entity\TeamMember', mappedBy: 'user', fetch: 'LAZY', cascade: ['persist'], orphanRemoval: true)]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TeamMember::class, cascade: ['persist'], fetch: 'LAZY', orphanRemoval: true)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     #[Serializer\Expose]
     #[Serializer\Groups(['User_Entity'])]
@@ -159,7 +158,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
     #[ORM\Column(name: 'username', type: 'string', length: 180, nullable: false)]
     #[Assert\NotBlank(groups: ['Registration', 'UserCreate', 'Profile'])]
     #[Assert\Regex(pattern: '/\//', match: false, groups: ['Registration', 'UserCreate', 'Profile'])]
-    #[Assert\Length(min: 2, max: 60, groups: ['Registration', 'UserCreate', 'Profile'])]
+    #[Assert\Length(min: 2, max: 64, groups: ['Registration', 'UserCreate', 'Profile'])]
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     private ?string $username = null;
@@ -169,7 +168,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
     #[Assert\Email(mode: 'html5', groups: ['Registration', 'UserCreate', 'Profile'])]
     private ?string $email = null;
     #[ORM\Column(name: 'account', type: 'string', length: 30, nullable: true)]
-    #[Assert\Length(max: 30, groups: ['Registration', 'UserCreate', 'Profile'])]
+    #[Assert\Length(max: 30)]
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     #[Exporter\Expose(label: 'account_number')]
@@ -195,9 +194,10 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
      * Random string sent to the user email address in order to verify it.
      */
     #[ORM\Column(name: 'confirmation_token', type: 'string', length: 180, unique: true, nullable: true)]
+    #[Assert\Length(max: 180)]
     private ?string $confirmationToken = null;
-    #[ORM\Column(name: 'password_requested_at', type: 'datetime', nullable: true)]
-    private ?\DateTime $passwordRequestedAt = null;
+    #[ORM\Column(name: 'password_requested_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $passwordRequestedAt = null;
     /**
      * List of all role names
      */
@@ -209,13 +209,20 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
     private array $roles = [];
     /**
      * If not empty two-factor authentication is enabled.
+     * TODO reduce the length, which was initially forgotten and set to 255, as this is the default for MySQL with Doctrine (see migration Version20230126002049)
      */
-    #[ORM\Column(name: 'totp_secret', type: 'string', nullable: true)]
+    #[ORM\Column(name: 'totp_secret', type: 'string', length: 255, nullable: true)]
     private ?string $totpSecret = null;
     #[ORM\Column(name: 'totp_enabled', type: 'boolean', nullable: false, options: ['default' => false])]
     private bool $totpEnabled = false;
     #[ORM\Column(name: 'system_account', type: 'boolean', nullable: false, options: ['default' => false])]
     private bool $systemAccount = false;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Serializer\Expose]
+    #[Serializer\Groups(['User_Entity'])]
+    #[OA\Property(ref: '#/components/schemas/User')]
+    private ?User $supervisor = null;
 
     use ColorTrait;
 
@@ -291,6 +298,14 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $this;
     }
 
+    #[Serializer\VirtualProperty]
+    #[Serializer\SerializedName('apiToken')]
+    #[Serializer\Groups(['Default'])]
+    public function hasApiToken(): bool
+    {
+        return $this->apiToken !== null;
+    }
+
     public function getPlainApiToken(): ?string
     {
         return $this->plainApiToken;
@@ -304,7 +319,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
     }
 
     /**
-     * Read-only list of of all visible user preferences.
+     * Read-only list of all visible user preferences.
      *
      * @internal only for API usage
      * @return UserPreference[]
@@ -320,6 +335,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         $skip = [
             UserPreference::TIMEZONE,
             UserPreference::LOCALE,
+            UserPreference::LANGUAGE,
             UserPreference::SKIN,
             'calendar_initial_view',
             'login_initial_view',
@@ -365,7 +381,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
      * @param string $name
      * @param bool|int|string|float|null $value
      */
-    public function setPreferenceValue(string $name, $value = null)
+    public function setPreferenceValue(string $name, $value = null): void
     {
         $pref = $this->getPreference($name);
 
@@ -392,13 +408,22 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return null;
     }
 
+    /**
+     * The locale used for formatting number, money, dates and times
+     */
     #[Serializer\VirtualProperty]
-    #[Serializer\SerializedName('language')]
+    #[Serializer\SerializedName('locale')]
     #[Serializer\Groups(['User_Entity'])]
     #[OA\Property(type: 'string')]
     public function getLocale(): string
     {
-        return $this->getPreferenceValue(UserPreference::LOCALE, User::DEFAULT_LANGUAGE, false);
+        // uses language as fallback, because the language was here before
+        return (string) $this->getPreferenceValue(UserPreference::LOCALE, $this->getLanguage(), false);
+    }
+
+    public function setLocale(?string $locale): void
+    {
+        $this->setPreferenceValue(UserPreference::LOCALE, $locale ?? User::DEFAULT_LANGUAGE);
     }
 
     #[Serializer\VirtualProperty]
@@ -410,17 +435,21 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $this->getPreferenceValue(UserPreference::TIMEZONE, date_default_timezone_get(), false);
     }
 
+    /**
+     * The locale used for translations
+     */
+    #[Serializer\VirtualProperty]
+    #[Serializer\SerializedName('language')]
+    #[Serializer\Groups(['User_Entity'])]
+    #[OA\Property(type: 'string')]
     public function getLanguage(): string
     {
-        return $this->getLocale();
+        return (string) $this->getPreferenceValue(UserPreference::LANGUAGE, User::DEFAULT_LANGUAGE, false);
     }
 
-    public function setLanguage(?string $language)
+    public function setLanguage(?string $language): void
     {
-        if ($language === null) {
-            $language = User::DEFAULT_LANGUAGE;
-        }
-        $this->setPreferenceValue(UserPreference::LOCALE, $language);
+        $this->setPreferenceValue(UserPreference::LANGUAGE, $language ?? User::DEFAULT_LANGUAGE);
     }
 
     public function isFirstDayOfWeekSunday(): bool
@@ -443,7 +472,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return (string) $this->getPreferenceValue(UserPreference::SKIN, 'default', false);
     }
 
-    public function setTimezone(?string $timezone)
+    public function setTimezone(?string $timezone): void
     {
         if ($timezone === null) {
             $timezone = date_default_timezone_get();
@@ -530,7 +559,9 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         }
 
         $this->memberships->removeElement($member);
-        $member->getTeam()->removeMember($member);
+        if ($member->getTeam() !== null) {
+            $member->getTeam()->removeMember($member);
+        }
         $member->setUser(null);
         $member->setTeam(null);
     }
@@ -584,9 +615,37 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
     public function hasTeamMember(User $user): bool
     {
         foreach ($this->memberships as $membership) {
-            if ($membership->getTeam()->hasUser($user)) {
+            if ($membership->getTeam() !== null && $membership->getTeam()->hasUser($user)) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Use this function to check if the current user can read data from the given user.
+     */
+    public function canSeeUser(User $user): bool
+    {
+        if ($user->getId() === $this->getId()) {
+            return true;
+        }
+
+        if ($this->canSeeAllData()) {
+            return true;
+        }
+
+        if (!$user->isEnabled()) {
+            return false;
+        }
+
+        if (!$this->isSystemAccount() && $user->isSystemAccount()) {
+            return false;
+        }
+
+        if ($this->isTeamleadOfUser($user)) {
+            return true;
         }
 
         return false;
@@ -667,6 +726,17 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return false;
     }
 
+    public function isTeamleadOfUser(User $user): bool
+    {
+        foreach ($this->memberships as $membership) {
+            if ($membership->isTeamlead() && $membership->getTeam() !== null && $membership->getTeam()->hasUser($user)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function canSeeAllData(): bool
     {
         return $this->isSuperAdmin() || true === $this->isAllowedToSeeAllData;
@@ -702,7 +772,7 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $this->hasRole(static::ROLE_ADMIN);
     }
 
-    public function getDisplayName(): ?string
+    public function getDisplayName(): string
     {
         if (!empty($this->getAlias())) {
             return $this->getAlias();
@@ -738,18 +808,16 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $this->auth === null || $this->auth === self::AUTH_INTERNAL;
     }
 
-    public function addRole(string $role)
+    public function addRole(string $role): void
     {
         $role = strtoupper($role);
         if ($role === static::DEFAULT_ROLE) {
-            return $this;
+            return;
         }
 
         if (!\in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
         }
-
-        return $this;
     }
 
     public function eraseCredentials(): void
@@ -791,9 +859,6 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $this->email !== null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -819,9 +884,6 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $this->confirmationToken;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -911,26 +973,31 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $this;
     }
 
-    public function setConfirmationToken($confirmationToken): User
+    public function setConfirmationToken($confirmationToken): void
     {
         $this->confirmationToken = $confirmationToken;
-
-        return $this;
     }
 
-    public function setPasswordRequestedAt(\DateTime $date = null): User
+    public function markPasswordRequested(): void
+    {
+        $this->setPasswordRequestedAt(new \DateTimeImmutable('now', new \DateTimeZone($this->getTimezone())));
+    }
+
+    public function markPasswordResetted(): void
+    {
+        $this->setConfirmationToken(null);
+        $this->setPasswordRequestedAt(null);
+    }
+
+    public function setPasswordRequestedAt(?\DateTimeImmutable $date): void
     {
         $this->passwordRequestedAt = $date;
-
-        return $this;
     }
 
     /**
      * Gets the timestamp that the user requested a password reset.
-     *
-     * @return DateTime|null
      */
-    public function getPasswordRequestedAt(): ?DateTime
+    public function getPasswordRequestedAt(): ?\DateTimeImmutable
     {
         return $this->passwordRequestedAt;
     }
@@ -968,6 +1035,10 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         }
 
         if ($this->username !== $user->getUserIdentifier()) {
+            return false;
+        }
+
+        if ($this->enabled !== $user->isEnabled()) {
             return false;
         }
 
@@ -1049,7 +1120,8 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
 
     public function setAccountNumber(?string $accountNumber): void
     {
-        $this->accountNumber = $accountNumber;
+        // @CloudRequired because SAML mapping could include a longer value
+        $this->accountNumber = StringHelper::ensureMaxLength($accountNumber, 30);
     }
 
     public function isSystemAccount(): bool
@@ -1065,6 +1137,20 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
     public function getName(): string
     {
         return $this->getDisplayName();
+    }
+
+    public function requiresPasswordReset(): bool
+    {
+        if (!$this->isInternalUser() || !$this->isEnabled()) {
+            return false;
+        }
+
+        return $this->getPreferenceValue('__pw_reset__') === '1';
+    }
+
+    public function setRequiresPasswordReset(bool $require = true): void
+    {
+        $this->setPreferenceValue('__pw_reset__', ($require ? '1' : '0'));
     }
 
     public function hasSeenWizard(string $wizard): bool
@@ -1174,6 +1260,27 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return (int) $this->getPreferenceValue(UserPreference::WORK_HOURS_SUNDAY, 0);
     }
 
+    public function getWorkStartingDay(): ?\DateTimeInterface
+    {
+        $date = $this->getPreferenceValue(UserPreference::WORK_STARTING_DAY);
+
+        if ($date === null) {
+            return null;
+        }
+
+        try {
+            $date = \DateTimeImmutable::createFromFormat('Y-m-d h:i:s', $date . ' 00:00:00', new \DateTimeZone($this->getTimezone()));
+        } catch (Exception $e) {
+        }
+
+        return ($date instanceof \DateTimeInterface) ? $date : null;
+    }
+
+    public function setWorkStartingDay(?\DateTimeInterface $date): void
+    {
+        $this->setPreferenceValue(UserPreference::WORK_STARTING_DAY, $date?->format('Y-m-d'));
+    }
+
     public function getPublicHolidayGroup(): null|string
     {
         $group = $this->getPreferenceValue(UserPreference::PUBLIC_HOLIDAY_GROUP);
@@ -1181,9 +1288,11 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         return $group === null ? $group : (string) $group;
     }
 
-    public function getHolidaysPerYear(): int
+    public function getHolidaysPerYear(): float
     {
-        return (int) $this->getPreferenceValue(UserPreference::HOLIDAYS_PER_YEAR, 0);
+        $holidays = $this->getPreferenceValue(UserPreference::HOLIDAYS_PER_YEAR, 0.0);
+
+        return $this->getFormattedHoliday(is_numeric($holidays) ? $holidays : 0.0);
     }
 
     public function setWorkHoursMonday(int $seconds): void
@@ -1226,14 +1335,28 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
         $this->setPreferenceValue(UserPreference::PUBLIC_HOLIDAY_GROUP, $group);
     }
 
-    public function setHolidaysPerYear(int $holidays): void
+    public function setHolidaysPerYear(?float $holidays): void
     {
-        $this->setPreferenceValue(UserPreference::HOLIDAYS_PER_YEAR, $holidays);
+        if ($holidays !== null) {
+            // makes sure that the number is a multiple of 0.5
+            $holidays = $this->getFormattedHoliday($holidays);
+        }
+
+        $this->setPreferenceValue(UserPreference::HOLIDAYS_PER_YEAR, $holidays ?? 0.0);
+    }
+
+    private function getFormattedHoliday(int|float|string|null $holidays): float
+    {
+        if (!is_numeric($holidays)) {
+            $holidays = 0.0;
+        }
+
+        return (float) number_format((round($holidays * 2) / 2), 1);
     }
 
     public function hasContractSettings(): bool
     {
-        return $this->hasWorkHourConfiguration() || $this->getHolidaysPerYear() !== 0;
+        return $this->hasWorkHourConfiguration() || $this->getHolidaysPerYear() !== 0.0;
     }
 
     public function hasWorkHourConfiguration(): bool
@@ -1259,5 +1382,25 @@ class User implements UserInterface, EquatableInterface, ThemeUserInterface, Pas
             '7' => $this->getWorkHoursSunday(),
             default => throw new \Exception('Unknown day: ' . $dateTime->format('Y-m-d'))
         };
+    }
+
+    public function isWorkDay(\DateTimeInterface $dateTime): bool
+    {
+        return $this->getWorkHoursForDay($dateTime) > 0;
+    }
+
+    public function hasSupervisor(): bool
+    {
+        return $this->supervisor !== null;
+    }
+
+    public function getSupervisor(): ?User
+    {
+        return $this->supervisor;
+    }
+
+    public function setSupervisor(?User $supervisor): void
+    {
+        $this->supervisor = $supervisor;
     }
 }

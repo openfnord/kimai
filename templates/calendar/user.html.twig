@@ -10,7 +10,10 @@
                 {% embed '@theme/embeds/card.html.twig' %}
                     {% block box_body %}
                         {{ form_start(form) }}
-                        {{ form_widget(form) }}
+                        {% if form.user is defined %}
+                            {{ form_row(form.user) }}
+                        {% endif %}
+                        {{ form_rest(form) }}
                         {{ form_end(form) }}
                     {% endblock %}
                 {% endembed %}
@@ -132,7 +135,7 @@
                     {
                         id: 'kimaiUserTimeSource',
                         type: 'timesheet',
-                        url: '{{ path('get_timesheets') }}?user={{ user.id }}&size=1000&full=true&begin={from}&end={to}',
+                        url: '{{ path('get_timesheets', {'user': user.id, 'size': 1000, 'full': 'true', 'begin': '__FROM__', 'end': '__TO__'})|raw }}',
                         options: {
                             color: '{{ config('theme.calendar.background_color') }}',
                         },
@@ -141,8 +144,8 @@
                     {% for source in google.sources %}
                     ,
                     {
-                        id: 'googleCompanyCalendar',
-                        type: 'google',
+                        id: 'googleCompanyCalendar{{ loop.index }}',
+                        type: '{{ source.typeName }}',
                         options: {
                             googleCalendarId: '{{ source.uri }}',
                             name: '{{ source.id }}',
@@ -152,6 +155,18 @@
                     }
                     {% endfor %}
                     {% endif %}
+                    {% for source in sources %}
+                    ,
+                    {
+                        id: '{{ source.id }}{{ loop.index }}',
+                        type: '{{ source.typeName }}',
+                        url: '{{ source.uri|raw }}',
+                        options: {...{{ source.options|json_encode|raw }}, ...{
+                            color: '{{ source.color }}',
+                            textColor: '{{ source.color|font_contrast }}',
+                        }}
+                    }
+                    {% endfor %}
                 ],
                 url: {
                     update: (timesheetId) => {

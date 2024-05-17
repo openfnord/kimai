@@ -9,23 +9,17 @@
 
 namespace App\Widget\Type;
 
-use App\Repository\TimesheetRepository;
-
-abstract class AbstractActiveUsers extends AbstractSimpleStatisticChart
+abstract class AbstractActiveUsers extends AbstractWidgetType
 {
+    /**
+     * @param array<string, string|bool|int|null|array<string, mixed>> $options
+     @return array<string, string|bool|int|null|array<string, mixed>>
+     */
     public function getOptions(array $options = []): array
     {
         return array_merge([
             'icon' => 'users',
         ], parent::getOptions($options));
-    }
-
-    public function getData(array $options = []): mixed
-    {
-        $this->setQueryWithUser(false);
-        $this->setQuery(TimesheetRepository::STATS_QUERY_USER);
-
-        return parent::getData($options);
     }
 
     public function getTitle(): string

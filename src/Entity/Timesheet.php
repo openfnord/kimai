@@ -9,13 +9,13 @@
 
 namespace App\Entity;
 
+use App\Doctrine\ModifiedAt;
 use App\Validator\Constraints as Constraints;
 use DateTime;
 use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Mapping\Annotation as Gedmo;
 use JMS\Serializer\Annotation as Serializer;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -46,7 +46,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Serializer\VirtualProperty('TagsAsArray', exp: 'object.getTagsAsArray()', options: [new Serializer\SerializedName('tags'), new Serializer\Type(name: 'array<string>'), new Serializer\Groups(['Default'])])]
 #[Constraints\Timesheet]
 #[Constraints\TimesheetDeactivated]
-class Timesheet implements EntityWithMetaFields, ExportableItem
+class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
 {
     /**
      * Category: Normal work-time (default category)
@@ -87,9 +87,9 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
      * Reflects the date in the user timezone (not in UTC).
      * This value is automatically set through the begin column and ONLY used in statistic queries.
      */
-    #[ORM\Column(name: 'date_tz', type: 'date', nullable: false)]
+    #[ORM\Column(name: 'date_tz', type: 'date_immutable', nullable: false)]
     #[Assert\NotNull]
-    private ?DateTime $date = null;
+    private ?\DateTimeImmutable $date = null;
     /**
      * Time records start date-time.
      *
@@ -127,22 +127,22 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     private ?int $duration = 0;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\User')]
-    #[ORM\JoinColumn(name: '`user`', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: '`user`', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     #[Serializer\Expose]
     #[Serializer\Groups(['Subresource', 'Expanded'])]
     #[OA\Property(ref: '#/components/schemas/User')]
     private ?User $user = null;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Activity')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Activity::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     #[Serializer\Expose]
     #[Serializer\Groups(['Subresource', 'Expanded'])]
     #[OA\Property(ref: '#/components/schemas/ActivityExpanded')]
     private ?Activity $activity = null;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Project')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     #[Serializer\Expose]
     #[Serializer\Groups(['Subresource', 'Expanded'])]
@@ -189,12 +189,8 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
     #[ORM\Column(name: 'category', type: 'string', length: 10, nullable: false, options: ['default' => 'work'])]
     #[Assert\NotNull]
     private ?string $category = self::WORK;
-    /**
-     * @internal used for limiting queries, eg. via API sync
-     */
-    #[ORM\Column(name: 'modified_at', type: 'datetime', nullable: true)]
-    #[Gedmo\Timestampable]
-    private ?\DateTime $modifiedAt = null;
+    #[ORM\Column(name: 'modified_at', type: 'datetime_immutable', nullable: true)]
+    private \DateTimeImmutable $modifiedAt;
     /**
      * Tags
      *
@@ -203,7 +199,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
     #[ORM\JoinTable(name: 'kimai2_timesheet_tags')]
     #[ORM\JoinColumn(name: 'timesheet_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(name: 'tag_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[ORM\ManyToMany(targetEntity: 'App\Entity\Tag', inversedBy: 'timesheets', cascade: ['persist'])]
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'timesheets', cascade: ['persist'])]
     #[Assert\Valid]
     private Collection $tags;
     /**
@@ -211,7 +207,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
      *
      * @var Collection<TimesheetMeta>
      */
-    #[ORM\OneToMany(targetEntity: 'App\Entity\TimesheetMeta', mappedBy: 'timesheet', cascade: ['persist'])]
+    #[ORM\OneToMany(mappedBy: 'timesheet', targetEntity: TimesheetMeta::class, cascade: ['persist'])]
     #[Serializer\Expose]
     #[Serializer\Groups(['Timesheet'])]
     #[Serializer\Type(name: 'array<App\Entity\TimesheetMeta>')]
@@ -223,6 +219,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
     {
         $this->tags = new ArrayCollection();
         $this->meta = new ArrayCollection();
+        $this->modifiedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -268,7 +265,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
         $this->begin = $begin;
         $this->timezone = $begin->getTimezone()->getName();
         // make sure that the original date is always kept in UTC
-        $this->date = new DateTime($begin->format('Y-m-d 00:00:00'), new DateTimeZone('UTC'));
+        $this->date = new \DateTimeImmutable($begin->format('Y-m-d 00:00:00'), new DateTimeZone('UTC'));
 
         return $this;
     }
@@ -415,10 +412,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
         return $this->internalRate;
     }
 
-    /**
-     * @param Tag $tag
-     * @return Timesheet
-     */
     public function addTag(Tag $tag): Timesheet
     {
         if ($this->tags->contains($tag)) {
@@ -429,9 +422,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
         return $this;
     }
 
-    /**
-     * @param Tag $tag
-     */
     public function removeTag(Tag $tag): void
     {
         if (!$this->tags->contains($tag)) {
@@ -590,9 +580,14 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
         return $this;
     }
 
-    public function getModifiedAt(): ?DateTime
+    public function getModifiedAt(): \DateTimeImmutable
     {
         return $this->modifiedAt;
+    }
+
+    public function setModifiedAt(\DateTimeImmutable $dateTime): void
+    {
+        $this->modifiedAt = $dateTime;
     }
 
     /**
@@ -687,7 +682,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem
         }
 
         // field will not be set, if it contains a value
-        $this->modifiedAt = null;
+        $this->modifiedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->exported = false;
 
         $currentMeta = $this->meta;

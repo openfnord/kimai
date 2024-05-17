@@ -33,24 +33,25 @@ use App\Repository\CustomerRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\Query\CustomerQuery;
 use App\Repository\Query\ProjectQuery;
+use App\Repository\Query\TeamQuery;
+use App\Repository\Query\TimesheetQuery;
 use App\Repository\TeamRepository;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Controller used to manage customer in the admin part of the site.
+ * Controller used to manage customers.
  */
 #[Route(path: '/admin/customer')]
-#[IsGranted(new Expression("is_granted('view_customer') or is_granted('view_teamlead_customer') or is_granted('view_team_customer')"))]
 final class CustomerController extends AbstractController
 {
     public function __construct(private CustomerRepository $repository, private EventDispatcherInterface $dispatcher)
@@ -59,13 +60,14 @@ final class CustomerController extends AbstractController
 
     #[Route(path: '/', defaults: ['page' => 1], name: 'admin_customer', methods: ['GET'])]
     #[Route(path: '/page/{page}', requirements: ['page' => '[1-9]\d*'], name: 'admin_customer_paginated', methods: ['GET'])]
+    #[IsGranted(new Expression("is_granted('listing', 'customer')"))]
     public function indexAction(int $page, Request $request): Response
     {
         $query = new CustomerQuery();
         $query->setCurrentUser($this->getUser());
         $query->setPage($page);
 
-        $form = $this->getToolbarForm($query);
+        $form = $this->getToolbarForm($query, $request);
         if ($this->handleSearch($form, $request)) {
             return $this->redirectToRoute('admin_customer');
         }
@@ -307,6 +309,15 @@ final class CustomerController extends AbstractController
         $rates = [];
         $now = $this->getDateTimeFactory()->createDateTime();
 
+        $exportUrl = null;
+        $invoiceUrl = null;
+        if ($this->isGranted('create_export')) {
+            $exportUrl = $this->generateUrl('export', ['customers[]' => $customer->getId(), 'projects[]' => '', 'daterange' => '', 'exported' => TimesheetQuery::STATE_NOT_EXPORTED, 'preview' => true, 'billable' => true]);
+        }
+        if ($this->isGranted('view_invoice')) {
+            $invoiceUrl = $this->generateUrl('invoice', ['customers[]' => $customer->getId(), 'projects[]' => '', 'daterange' => '', 'exported' => TimesheetQuery::STATE_NOT_EXPORTED, 'billable' => true]);
+        }
+
         if ($this->isGranted('edit', $customer)) {
             if ($this->isGranted('create_team')) {
                 $defaultTeam = $teamRepository->findOneBy(['name' => $customer->getName()]);
@@ -314,7 +325,7 @@ final class CustomerController extends AbstractController
             $rates = $rateRepository->getRatesForCustomer($customer);
         }
 
-        if (null !== $customer->getTimezone()) {
+        if ($customer->getTimezone() !== null && $customer->getTimezone() !== '') {
             $timezone = new \DateTimeZone($customer->getTimezone());
         }
 
@@ -328,7 +339,9 @@ final class CustomerController extends AbstractController
         }
 
         if ($this->isGranted('permissions', $customer) || $this->isGranted('details', $customer) || $this->isGranted('view_team')) {
-            $teams = $customer->getTeams();
+            $query = new TeamQuery();
+            $query->addCustomer($customer);
+            $teams = $teamRepository->getTeamsForQuery($query);
         }
 
         // additional boxes by plugins
@@ -353,7 +366,9 @@ final class CustomerController extends AbstractController
             'customer_now' => new \DateTime('now', $timezone),
             'rates' => $rates,
             'now' => $now,
-            'boxes' => $boxes
+            'boxes' => $boxes,
+            'export_url' => $exportUrl,
+            'invoice_url' => $invoiceUrl,
         ]);
     }
 
@@ -452,12 +467,13 @@ final class CustomerController extends AbstractController
     }
 
     #[Route(path: '/export', name: 'customer_export', methods: ['GET'])]
+    #[IsGranted(new Expression("is_granted('listing', 'customer')"))]
     public function exportAction(Request $request, EntityWithMetaFieldsExporter $exporter): Response
     {
         $query = new CustomerQuery();
         $query->setCurrentUser($this->getUser());
 
-        $form = $this->getToolbarForm($query);
+        $form = $this->getToolbarForm($query, $request);
         $form->setData($query);
         $form->submit($request->query->all(), false);
 
@@ -492,7 +508,11 @@ final class CustomerController extends AbstractController
                     return $this->redirectToRouteAfterCreate('customer_details', ['id' => $customer->getId()]);
                 }
 
-                return $this->redirectToRoute('customer_details', ['id' => $customer->getId()]);
+                if ($this->isGranted('view', $customer)) {
+                    return $this->redirectToRoute('customer_details', ['id' => $customer->getId()]);
+                } else {
+                    return new Response();
+                }
             } catch (\Exception $ex) {
                 $this->handleFormUpdateException($ex, $editForm);
             }
@@ -506,12 +526,12 @@ final class CustomerController extends AbstractController
     }
 
     /**
-     * @param CustomerQuery $query
      * @return FormInterface<CustomerQuery>
      */
-    private function getToolbarForm(CustomerQuery $query): FormInterface
+    private function getToolbarForm(CustomerQuery $query, Request $request): FormInterface
     {
         return $this->createSearchForm(CustomerToolbarForm::class, $query, [
+            'locale' => $request->getLocale(),
             'action' => $this->generateUrl('admin_customer', [
                 'page' => $query->getPage(),
             ])
@@ -519,7 +539,6 @@ final class CustomerController extends AbstractController
     }
 
     /**
-     * @param CustomerComment $comment
      * @return FormInterface<CustomerComment>
      */
     private function getCommentForm(CustomerComment $comment): FormInterface
@@ -535,7 +554,6 @@ final class CustomerController extends AbstractController
     }
 
     /**
-     * @param Customer $customer
      * @return FormInterface<Customer>
      */
     private function createEditForm(Customer $customer): FormInterface

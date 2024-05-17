@@ -55,12 +55,12 @@ class Invoice implements EntityWithMetaFields
     #[Serializer\Groups(['Customer_Entity'])]
     #[Exporter\Expose(label: 'comment')]
     private ?string $comment = null;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Customer')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Customer::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private ?Customer $customer = null;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\User')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private ?User $user = null;
     #[ORM\Column(name: 'created_at', type: 'datetime', nullable: false)]
@@ -109,7 +109,7 @@ class Invoice implements EntityWithMetaFields
      *
      * @var Collection<InvoiceMeta>
      */
-    #[ORM\OneToMany(targetEntity: 'App\Entity\InvoiceMeta', mappedBy: 'invoice', cascade: ['persist'])]
+    #[ORM\OneToMany(mappedBy: 'invoice', targetEntity: InvoiceMeta::class, cascade: ['persist'])]
     #[Serializer\Expose]
     #[Serializer\Groups(['Invoice'])]
     #[Serializer\Type(name: 'array<App\Entity\InvoiceMeta>')]
@@ -208,7 +208,7 @@ class Invoice implements EntityWithMetaFields
         $this->currency = $model->getCurrency();
 
         $createdAt = $model->getInvoiceDate();
-        $this->createdAt = $createdAt;
+        $this->createdAt = \DateTime::createFromInterface($createdAt);
         $this->timezone = $createdAt->getTimezone()->getName();
 
         $this->dueDays = $template->getDueDays();

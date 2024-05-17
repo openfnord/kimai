@@ -17,12 +17,12 @@ use App\Tests\Controller\ControllerBaseTest;
  */
 class ApiDocControllerTest extends ControllerBaseTest
 {
-    public function testIsSecure()
+    public function testIsSecure(): void
     {
         $this->assertUrlIsSecured('/api/doc');
     }
 
-    public function testGetDocs()
+    public function testGetDocs(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_USER);
         $this->assertAccessIsGranted($client, '/api/doc');
@@ -47,7 +47,7 @@ class ApiDocControllerTest extends ControllerBaseTest
         self::assertEquals($expectedKeys, $actual, sprintf('Expected %s sections in API docs, but found %s.', \count($actual), \count($expectedKeys)));
     }
 
-    public function testGetJsonDocs()
+    public function testGetJsonDocs(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_USER);
         $this->assertAccessIsGranted($client, '/api/doc.json');
@@ -97,20 +97,20 @@ class ApiDocControllerTest extends ControllerBaseTest
             '/api/users',
             '/api/users/{id}',
             '/api/users/me',
+            '/api/users/api-token/{id}',
         ];
 
         $this->assertArrayHasKey('openapi', $json);
         $this->assertEquals('3.0.0', $json['openapi']);
         $this->assertArrayHasKey('info', $json);
         $this->assertEquals('Kimai - API Docs', $json['info']['title']);
-        $this->assertEquals('0.7', $json['info']['version']);
+        $this->assertEquals('1.0', $json['info']['version']);
 
         $this->assertArrayHasKey('paths', $json);
         $this->assertEquals($paths, array_keys($json['paths']));
 
         $this->assertArrayHasKey('security', $json);
-        $this->assertArrayHasKey('X-AUTH-USER', $json['security'][0]);
-        $this->assertArrayHasKey('X-AUTH-TOKEN', $json['security'][0]);
+        $this->assertEquals(['bearer' => []], $json['security'][0]);
 
         $this->assertArrayHasKey('components', $json);
         $this->assertArrayHasKey('schemas', $json['components']);

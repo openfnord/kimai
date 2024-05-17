@@ -12,27 +12,31 @@ namespace App\Controller\Auth;
 use App\Configuration\SamlConfigurationInterface;
 use App\Saml\SamlAuthFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
 
 #[Route(path: '/saml')]
 final class SamlController extends AbstractController
 {
-    public function __construct(private SamlAuthFactory $authFactory, private SamlConfigurationInterface $samlConfiguration)
+    public function __construct(
+        private readonly SamlAuthFactory $authFactory,
+        private readonly SamlConfigurationInterface $samlConfiguration
+    )
     {
     }
 
     #[Route(path: '/login', name: 'saml_login')]
-    public function loginAction(Request $request)
+    public function loginAction(Request $request): Response
     {
         if (!$this->samlConfiguration->isActivated()) {
             throw $this->createNotFoundException('SAML deactivated');
         }
 
         $session = $request->getSession();
-        $authErrorKey = Security::AUTHENTICATION_ERROR;
+        $authErrorKey = SecurityRequestAttributes::AUTHENTICATION_ERROR;
 
         $error = null;
 
@@ -50,11 +54,24 @@ final class SamlController extends AbstractController
             throw new \RuntimeException($error);
         }
 
-        $this->authFactory->create()->login($session->get('_security.main.target_path'));
+        // this does set headers and exit as $stay is not set to true
+        $redirectTarget = $session->get('_security.main.target_path');
+        if ($redirectTarget === null || $redirectTarget === '') {
+            $redirectTarget = $this->generateUrl('homepage', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        }
+
+        $url = $this->authFactory->create()->login($redirectTarget);
+
+        if ($url === null) {
+            throw new \RuntimeException('SAML login failed');
+        }
+
+        // this line is not (yet) reached, as the previous call will exit
+        return $this->redirect($url);
     }
 
     #[Route(path: '/metadata', name: 'saml_metadata')]
-    public function metadataAction()
+    public function metadataAction(): Response
     {
         if (!$this->samlConfiguration->isActivated()) {
             throw $this->createNotFoundException('SAML deactivated');
@@ -69,7 +86,7 @@ final class SamlController extends AbstractController
     }
 
     #[Route(path: '/acs', name: 'saml_acs')]
-    public function assertionConsumerServiceAction()
+    public function assertionConsumerServiceAction(): Response
     {
         if (!$this->samlConfiguration->isActivated()) {
             throw $this->createNotFoundException('SAML deactivated');
@@ -79,7 +96,7 @@ final class SamlController extends AbstractController
     }
 
     #[Route(path: '/logout', name: 'saml_logout')]
-    public function logoutAction()
+    public function logoutAction(): Response
     {
         if (!$this->samlConfiguration->isActivated()) {
             throw $this->createNotFoundException('SAML deactivated');

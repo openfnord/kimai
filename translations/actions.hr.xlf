@@ -20,7 +20,7 @@
       </trans-unit>
       <trans-unit id="hF6RgxM" resname="report">
         <source>report</source>
-        <target>Izvještaj</target>
+        <target state="translated">Prijavi</target>
       </trans-unit>
       <trans-unit id="JeK2sQZ" resname="repeat">
         <source>repeat</source>
@@ -117,6 +117,14 @@
       <trans-unit id="QCf1FUG" resname="reload">
         <source>reload</source>
         <target state="translated">Učitaj ponovo</target>
+      </trans-unit>
+      <trans-unit id="2UL2SIZ" resname="import">
+        <source>import</source>
+        <target state="translated">Uvezi</target>
+      </trans-unit>
+      <trans-unit id="5vJvarK" resname="syncronisation">
+        <source>syncronisation</source>
+        <target state="translated">Sinkronizacija</target>
       </trans-unit>
     </body>
   </file>

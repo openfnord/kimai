@@ -16,10 +16,10 @@ use App\Reporting\YearByUser\YearByUser;
 use App\Utils\PageSetup;
 use App\WorkingTime\Model\BoxConfiguration;
 use App\WorkingTime\WorkingTimeService;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Users can control their working time statistics
@@ -33,6 +33,7 @@ final class ContractController extends AbstractController
         $dateTimeFactory = $this->getDateTimeFactory($currentUser);
         $canChangeUser = $this->isGranted('contract_other_profile');
         $defaultDate = $dateTimeFactory->createStartOfYear();
+        $now = $dateTimeFactory->createDateTime();
 
         $values = new YearByUser();
         $values->setUser($currentUser);
@@ -62,18 +63,18 @@ final class ContractController extends AbstractController
 
         /** @var \DateTime $yearDate */
         $yearDate = $values->getDate();
-        $year = $workingTimeService->getYear($profile, $yearDate);
+        $year = $workingTimeService->getYear($profile, $yearDate, $now);
 
         $page = new PageSetup('work_times');
         $page->setHelp('contract.html');
         $page->setActionName('contract');
+        $page->setActionPayload(['profile' => $profile, 'year' => $yearDate]);
         $page->setPaginationForm($form);
 
         // additional boxes by plugins
         $controllerEvent = new WorkContractDetailControllerEvent($year);
         $eventDispatcher->dispatch($controllerEvent);
 
-        $now = $dateTimeFactory->createDateTime();
         $summary = $workingTimeService->getYearSummary($year, $now);
 
         $boxConfiguration = new BoxConfiguration();

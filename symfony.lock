@@ -20,18 +20,6 @@
             "ref": "56eaa387b5e48ebcc7c95a893b47dfa1ad51449c"
         }
     },
-    "doctrine/annotations": {
-        "version": "1.13",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "1.0",
-            "ref": "a2759dd6123694c8d901d0ec80006e044c2e6457"
-        },
-        "files": [
-            "config/routes/annotations.yaml"
-        ]
-    },
     "doctrine/cache": {
         "version": "v1.7.1"
     },
@@ -156,9 +144,6 @@
     "kevinpapst/tabler-bundle": {
         "version": "dev-initial"
     },
-    "laminas/laminas-escaper": {
-        "version": "2.7.0"
-    },
     "league/csv": {
         "version": "9.4.1"
     },
@@ -182,9 +167,6 @@
     },
     "myclabs/deep-copy": {
         "version": "1.7.0"
-    },
-    "myclabs/php-enum": {
-        "version": "1.7.6"
     },
     "nelmio/api-doc-bundle": {
         "version": "3.0",
@@ -449,13 +431,23 @@
         "version": "v4.0.3"
     },
     "symfony/framework-bundle": {
-        "version": "3.3",
+        "version": "6.4",
         "recipe": {
             "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "3.3",
-            "ref": "137a14eeb6b3f5370e7147af8aff6518504f50c7"
-        }
+            "branch": "main",
+            "version": "6.4",
+            "ref": "a91c965766ad3ff2ae15981801643330eb42b6a5"
+        },
+        "files": [
+            "config/packages/cache.yaml",
+            "config/packages/framework.yaml",
+            "config/preload.php",
+            "config/routes/framework.yaml",
+            "config/services.yaml",
+            "public/index.php",
+            "src/Controller/.gitignore",
+            "src/Kernel.php"
+        ]
     },
     "symfony/http-client": {
         "version": "v4.4.5"
@@ -513,9 +505,6 @@
             "version": "3.3",
             "ref": "179470cb6492db92dffee208cfdb436f175c93b4"
         }
-    },
-    "symfony/polyfill-ctype": {
-        "version": "v1.8.0"
     },
     "symfony/polyfill-intl-grapheme": {
         "version": "v1.13.1"

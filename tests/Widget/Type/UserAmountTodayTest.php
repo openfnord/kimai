@@ -23,7 +23,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 class UserAmountTodayTest extends AbstractWidgetTest
 {
-    protected function assertDefaultData(AbstractWidget $sut)
+    protected function assertDefaultData(AbstractWidget $sut): void
     {
         self::assertEquals(0.0, $sut->getData());
     }
@@ -50,7 +50,7 @@ class UserAmountTodayTest extends AbstractWidgetTest
         ];
     }
 
-    public function testSettings()
+    public function testSettings(): void
     {
         $sut = $this->createSut();
 

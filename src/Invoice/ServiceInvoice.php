@@ -22,9 +22,9 @@ use App\Repository\InvoiceDocumentRepository;
 use App\Repository\InvoiceRepository;
 use App\Repository\Query\InvoiceQuery;
 use App\Utils\FileHelper;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Service to manage invoice dependencies.
@@ -229,7 +229,7 @@ final class ServiceInvoice
         return $filename;
     }
 
-    public function changeInvoiceStatus(Invoice $invoice, string $status)
+    public function changeInvoiceStatus(Invoice $invoice, string $status): void
     {
         switch ($status) {
             case Invoice::STATUS_NEW:
@@ -256,7 +256,6 @@ final class ServiceInvoice
     }
 
     /**
-     * @param InvoiceQuery $query
      * @return ExportableItem[]
      */
     public function getInvoiceItems(InvoiceQuery $query): array
@@ -273,7 +272,7 @@ final class ServiceInvoice
     /**
      * @param ExportableItem[] $entries
      */
-    private function markEntriesAsExported(array $entries)
+    private function markEntriesAsExported(array $entries): void
     {
         foreach ($this->getInvoiceItemRepositories() as $repository) {
             $repository->setExported($entries);
@@ -309,9 +308,6 @@ final class ServiceInvoice
     }
 
     /**
-     * @param InvoiceModel $model
-     * @param EventDispatcherInterface $dispatcher
-     * @return Invoice
      * @throws \Exception
      */
     public function createInvoice(InvoiceModel $model, EventDispatcherInterface $dispatcher): Invoice
@@ -362,7 +358,7 @@ final class ServiceInvoice
         );
     }
 
-    public function deleteInvoice(Invoice $invoice, EventDispatcherInterface $dispatcher)
+    public function deleteInvoice(Invoice $invoice, EventDispatcherInterface $dispatcher): void
     {
         $invoiceDirectory = $this->getInvoicesDirectory();
 
@@ -377,8 +373,6 @@ final class ServiceInvoice
     }
 
     /**
-     * @param InvoiceQuery $query
-     * @return InvoiceModel
      * @throws \Exception
      */
     public function createModel(InvoiceQuery $query): InvoiceModel
@@ -410,12 +404,12 @@ final class ServiceInvoice
 
         $formatter = new DefaultInvoiceFormatter($this->formatter, $template->getLanguage());
 
-        $model = $this->invoiceModelFactory->createModel($formatter);
-        $model
-            ->setCustomer($customer)
-            ->setTemplate($template)
-            ->setQuery($query)
-        ;
+        $model = $this->invoiceModelFactory->createModel(
+            $formatter,
+            $customer,
+            $template,
+            $query
+        );
 
         if ($query->getInvoiceDate() !== null) {
             $model->setInvoiceDate($query->getInvoiceDate());
@@ -485,7 +479,6 @@ final class ServiceInvoice
     }
 
     /**
-     * @param InvoiceQuery $query
      * @return InvoiceModel[]
      * @throws \Exception
      */

@@ -17,6 +17,7 @@ use App\Utils\FormFormatConverter;
 use App\Utils\JavascriptFormatConverter;
 use App\Utils\LocaleFormatter;
 use DateTime;
+use DateTimeInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 use Twig\Extension\AbstractExtension;
@@ -26,7 +27,6 @@ use Twig\TwigTest;
 
 final class LocaleFormatExtensions extends AbstractExtension implements LocaleAwareInterface
 {
-    private ?bool $fdowSunday = null;
     private ?LocaleFormatter $formatter = null;
     private ?string $locale = null;
 
@@ -34,9 +34,6 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFilters(): array
     {
         return [
@@ -44,7 +41,8 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
             new TwigFilter('day_name', [$this, 'dayName']),
             new TwigFilter('date_short', [$this, 'dateShort']),
             new TwigFilter('date_time', [$this, 'dateTime']),
-            new TwigFilter('date_full', [$this, 'dateTime']), // deprecated: needs to be kept for invoice and export templates
+            // cannot be deleted right now, needs to be kept for invoice and export templates
+            new TwigFilter('date_full', [$this, 'dateTime'], ['deprecated' => true, 'alternative' => 'date_time']),
             new TwigFilter('date_format', [$this, 'dateFormat']),
             new TwigFilter('date_weekday', [$this, 'dateWeekday']),
             new TwigFilter('time', [$this, 'time']),
@@ -64,19 +62,16 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
         return [
             new TwigTest('weekend', [$this, 'isWeekend']),
             new TwigTest('today', function ($dateTime): bool {
-                if (!$dateTime instanceof \DateTime) {
+                if (!$dateTime instanceof \DateTimeInterface) {
                     return false;
                 }
-                $compare = new \DateTime('now', $dateTime->getTimezone());
+                $compare = new \DateTimeImmutable('now', $dateTime->getTimezone());
 
                 return $compare->format('Y-m-d') === $dateTime->format('Y-m-d');
             }),
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFunctions(): array
     {
         return [
@@ -116,29 +111,21 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
         return $this->locale;
     }
 
-    public function isWeekend(\DateTimeInterface|string|null $dateTime): bool
+    public function isWeekend(\DateTimeInterface|string|null $dateTime, ?User $user = null): bool
     {
         if (!$dateTime instanceof \DateTimeInterface) {
             return false;
         }
 
-        $day = (int) $dateTime->format('w');
+        $day = (int) $dateTime->format('N');
 
-        if ($this->fdowSunday === null) {
-            /** @var User|null $user */
-            $user = $this->security->getUser();
-            if ($user !== null) {
-                $this->fdowSunday = $user->isFirstDayOfWeekSunday();
-            } else {
-                $this->fdowSunday = false;
-            }
+        /** @var User|null $tmp */
+        $tmp = $user ?? $this->security->getUser();
+        if ($tmp !== null && $tmp->hasWorkHourConfiguration()) {
+            return !$tmp->isWorkDay($dateTime);
         }
 
-        if ($this->fdowSunday) {
-            return ($day === 5 || $day === 6);
-        }
-
-        return ($day === 0 || $day === 6);
+        return ($day === 6 || $day === 7);
     }
 
     public function dateShort(\DateTimeInterface|string|null $date): string
@@ -146,7 +133,7 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
         return (string) $this->getFormatter()->dateShort($date);
     }
 
-    public function dateTime(DateTime|string|null $date): string
+    public function dateTime(DateTimeInterface|string|null $date): string
     {
         return (string) $this->getFormatter()->dateTime($date);
     }
@@ -205,6 +192,8 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
     public function getJavascriptConfiguration(User $user): array
     {
         return [
+            'locale' => $this->locale,
+            'language' => $user->getLanguage(),
             'formatDuration' => $this->localeService->getDurationFormat($this->locale),
             'formatDate' => $this->localeService->getDateFormat($this->locale),
             'defaultColor' => Constants::DEFAULT_COLOR,

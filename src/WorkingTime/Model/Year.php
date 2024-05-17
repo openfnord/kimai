@@ -18,9 +18,9 @@ use App\Model\Year as BaseYear;
  */
 final class Year extends BaseYear
 {
-    public function __construct(\DateTimeInterface $month, private User $user)
+    public function __construct(\DateTimeInterface $year, private User $user)
     {
-        parent::__construct($month);
+        parent::__construct($year);
     }
 
     public function getUser(): User
@@ -28,9 +28,9 @@ final class Year extends BaseYear
         return $this->user;
     }
 
-    protected function createMonth(\DateTimeInterface $month): Month
+    protected function createMonth(\DateTimeImmutable $month): Month
     {
-        return new Month($month);
+        return new Month($month, $this->user);
     }
 
     public function getExpectedTime(\DateTimeInterface $until): int

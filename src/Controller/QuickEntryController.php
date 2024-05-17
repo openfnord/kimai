@@ -10,15 +10,16 @@
 namespace App\Controller;
 
 use App\Configuration\SystemConfiguration;
-use App\Entity\Timesheet;
 use App\Form\QuickEntryForm;
 use App\Model\QuickEntryWeek;
 use App\Repository\Query\TimesheetQuery;
 use App\Repository\TimesheetRepository;
+use App\Timesheet\FavoriteRecordService;
 use App\Timesheet\TimesheetService;
 use App\Utils\PageSetup;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -28,12 +29,17 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('quick-entry')]
 final class QuickEntryController extends AbstractController
 {
-    public function __construct(private SystemConfiguration $configuration, private TimesheetService $timesheetService, private TimesheetRepository $repository)
+    public function __construct(
+        private readonly SystemConfiguration $configuration,
+        private readonly TimesheetService $timesheetService,
+        private readonly TimesheetRepository $repository,
+        private readonly FavoriteRecordService $favoriteRecordService
+    )
     {
     }
 
     #[Route(path: '/{begin}', name: 'quick_entry', methods: ['GET', 'POST'])]
-    public function quickEntry(Request $request, ?string $begin = null)
+    public function quickEntry(Request $request, ?string $begin = null): Response
     {
         $factory = $this->getDateTimeFactory();
 
@@ -70,7 +76,6 @@ final class QuickEntryController extends AbstractController
         $result = $this->repository->getTimesheetResult($query);
 
         $rows = [];
-        /** @var Timesheet $timesheet */
         foreach ($result->getResults(true) as $timesheet) {
             $i = 0;
             $id = $timesheet->getProject()->getId() . '_' . $timesheet->getActivity()->getId();
@@ -96,34 +101,41 @@ final class QuickEntryController extends AbstractController
 
         // attach recent activities
         $amount = $this->configuration->getQuickEntriesRecentAmount();
-        $startFrom = null;
-        $takeOverWeeks = $this->configuration->find('quick_entry.recent_activity_weeks');
-        if ($takeOverWeeks !== null && \intval($takeOverWeeks) > 0) {
-            $startFrom = clone $startWeek;
-            $startFrom->modify(sprintf('-%s weeks', $takeOverWeeks));
-        }
-        $timesheets = $this->repository->getRecentActivities($user, $startFrom, $amount);
-        foreach ($timesheets as $timesheet) {
-            $id = $timesheet->getProject()->getId() . '_' . $timesheet->getActivity()->getId();
-            if (\array_key_exists($id, $rows)) {
-                continue;
+        if ($amount > 0) {
+            $takeOverWeeks = $this->configuration->find('quick_entry.recent_activity_weeks');
+            $startFrom = null;
+            if ($takeOverWeeks !== null && \intval($takeOverWeeks) > 0) {
+                $startFrom = clone $startWeek;
+                $startFrom->modify(sprintf('-%s weeks', $takeOverWeeks));
             }
-            // there is an edge case possible with a project that starts and ends between the start and end date
-            // user could still select it from the dropdown, but it is better to hide a row than displaying already ended projects
-            if ($timesheet->getProject() !== null && (!$timesheet->getProject()->isVisibleAtDate($startWeek) && !$timesheet->getProject()->isVisibleAtDate($endWeek))) {
-                continue;
+
+            $favorites = $this->favoriteRecordService->favoriteEntries($user, $amount);
+            foreach ($favorites as $favorite) {
+                $timesheet = $favorite->getTimesheet();
+                if ($startFrom !== null && !$favorite->isFavorite() && $startFrom > $timesheet->getBegin()) {
+                    continue;
+                }
+
+                $id = $timesheet->getProject()->getId() . '_' . $timesheet->getActivity()->getId();
+                if (\array_key_exists($id, $rows)) {
+                    continue;
+                }
+                // there is an edge case possible with a project that starts and ends between the start and end date
+                // user could still select it from the dropdown, but it is better to hide a row than displaying already ended projects
+                if ($timesheet->getProject() !== null && (!$timesheet->getProject()->isVisibleAtDate($startWeek) && !$timesheet->getProject()->isVisibleAtDate($endWeek))) {
+                    continue;
+                }
+                $rows[$id] = [
+                    'days' => $week,
+                    'project' => $timesheet->getProject(),
+                    'activity' => $timesheet->getActivity()
+                ];
             }
-            $rows[$id] = [
-                'days' => $week,
-                'project' => $timesheet->getProject(),
-                'activity' => $timesheet->getActivity()
-            ];
         }
 
         $defaultBegin = $factory->createDateTime($this->configuration->getTimesheetDefaultBeginTime());
         $defaultHour = (int) $defaultBegin->format('H');
         $defaultMinute = (int) $defaultBegin->format('i');
-        $defaultBegin->setTime($defaultHour, $defaultMinute, 0, 0);
 
         $formModel = new QuickEntryWeek($startWeek);
 
@@ -135,8 +147,9 @@ final class QuickEntryController extends AbstractController
                     $tmp = $this->timesheetService->createNewTimesheet($user);
                     $tmp->setProject($row['project']);
                     $tmp->setActivity($row['activity']);
-                    $tmp->setBegin(clone $day['day']);
-                    $tmp->getBegin()->setTime($defaultHour, $defaultMinute, 0, 0);
+                    $newTime = \DateTime::createFromInterface($day['day']);
+                    $newTime = $newTime->setTime($defaultHour, $defaultMinute);
+                    $tmp->setBegin($newTime);
                     $this->timesheetService->prepareNewTimesheet($tmp);
                     $model->addTimesheet($tmp);
                 } else {
@@ -150,8 +163,9 @@ final class QuickEntryController extends AbstractController
         $empty->markAsPrototype();
         foreach ($week as $dayId => $day) {
             $tmp = $this->timesheetService->createNewTimesheet($user);
-            $tmp->setBegin(clone $day['day']);
-            $tmp->getBegin()->setTime($defaultHour, $defaultMinute, 0, 0);
+            $newTime = \DateTime::createFromInterface($day['day']);
+            $newTime = $newTime->setTime($defaultHour, $defaultMinute, 0, 0);
+            $tmp->setBegin($newTime);
             $this->timesheetService->prepareNewTimesheet($tmp);
             $empty->addTimesheet($tmp);
         }
@@ -164,8 +178,9 @@ final class QuickEntryController extends AbstractController
                 $model = $formModel->addRow($user);
                 foreach ($week as $dayId => $day) {
                     $tmp = $this->timesheetService->createNewTimesheet($user);
-                    $tmp->setBegin(clone $day['day']);
-                    $tmp->getBegin()->setTime($defaultHour, $defaultMinute, 0, 0);
+                    $newTime = \DateTime::createFromInterface($day['day']);
+                    $newTime = $newTime->setTime($defaultHour, $defaultMinute, 0, 0);
+                    $tmp->setBegin($newTime);
                     $this->timesheetService->prepareNewTimesheet($tmp);
                     $model->addTimesheet($tmp);
                 }
@@ -192,7 +207,7 @@ final class QuickEntryController extends AbstractController
                 foreach ($tmpModel->getTimesheets() as $timesheet) {
                     if ($timesheet->getId() !== null) {
                         $duration = $timesheet->getDuration(false);
-                        if ($duration === null || $timesheet->getEnd() === null) {
+                        if ($duration === null || $timesheet->isRunning()) {
                             $deleteTimesheets[] = $timesheet;
                         } else {
                             $saveTimesheets[] = $timesheet;

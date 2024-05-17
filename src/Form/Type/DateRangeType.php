@@ -23,6 +23,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -32,27 +33,41 @@ final class DateRangeType extends AbstractType
 {
     public const DATE_SPACER = ' - ';
 
-    public function __construct(private LocaleService $localeService)
+    public function __construct(private readonly LocaleService $localeService)
     {
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $format = $this->localeService->getDateFormat(\Locale::getDefault());
-        $converter = new FormFormatConverter();
-        $formFormat = $converter->convert($format);
-        $pattern = $converter->convertToPattern($formFormat);
-
         $resolver->setDefaults([
             'timezone' => date_default_timezone_get(),
             'label' => 'daterange',
-            'format' => $formFormat,
             'separator' => self::DATE_SPACER,
             'allow_empty' => true,
-            'attr' => [
-                'pattern' => $pattern . self::DATE_SPACER . $pattern
-            ],
+            'with_presets' => true,
+            'min_day' => null,
+            'max_day' => null,
+            'locale' => \Locale::getDefault(),
         ]);
+        $resolver->addAllowedTypes('timezone', ['string']);
+        $resolver->addAllowedTypes('min_day', ['null', 'string', \DateTimeInterface::class]);
+        $resolver->addAllowedTypes('max_day', ['null', 'string', \DateTimeInterface::class]);
+
+        $resolver->setDefault('format', function (Options $options): string {
+            $format = $this->localeService->getDateFormat($options['locale']);
+            $converter = new FormFormatConverter();
+
+            return $converter->convert($format);
+        });
+
+        $resolver->setDefault('attr', function (Options $options): array {
+            $format = $this->localeService->getDateFormat($options['locale']);
+            $converter = new FormFormatConverter();
+            $formFormat = $converter->convert($format);
+            $pattern = $converter->convertToPattern($formFormat);
+
+            return ['pattern' => $pattern . self::DATE_SPACER . $pattern];
+        });
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
@@ -61,29 +76,43 @@ final class DateRangeType extends AbstractType
         $user = $options['user'];
         $factory = DateTimeFactory::createByUser($user);
 
-        $ranges = [
-            'daterangepicker.allTime' => [null, null],
-            'daterangepicker.today' => [$factory->createDateTime('00:00:00'), $factory->createDateTime('23:59:59')],
-            'daterangepicker.yesterday' => [$factory->createDateTime('-1 day 00:00:00'), $factory->createDateTime('-1 day 23:59:59')],
-            'daterangepicker.thisWeek' => [$factory->getStartOfWeek(), $factory->getEndOfWeek()],
-            'daterangepicker.lastWeek' => [$factory->getStartOfWeek('-1 week'), $factory->getEndOfWeek('-1 week')],
-            'daterangepicker.thisMonth' => [$factory->getStartOfMonth(), $factory->getEndOfMonth()],
-            'daterangepicker.lastMonth' => [$factory->getStartOfLastMonth(), $factory->getEndOfLastMonth()],
-            'daterangepicker.thisYearUntilNow' => [$factory->createStartOfYear(), $factory->createDateTime('23:59:59')],
-        ];
+        if ($options['with_presets']) {
+            $ranges = [
+                'daterangepicker.allTime' => [null, null],
+                'daterangepicker.today' => [$factory->createDateTime('00:00:00'), $factory->createDateTime('23:59:59')],
+                'daterangepicker.yesterday' => [$factory->createDateTime('-1 day 00:00:00'), $factory->createDateTime('-1 day 23:59:59')],
+                'daterangepicker.thisWeek' => [$factory->getStartOfWeek(), $factory->getEndOfWeek()],
+                'daterangepicker.lastWeek' => [$factory->getStartOfWeek('-1 week'), $factory->getEndOfWeek('-1 week')],
+                'daterangepicker.thisMonth' => [$factory->getStartOfMonth(), $factory->getEndOfMonth()],
+                'daterangepicker.lastMonth' => [$factory->getStartOfLastMonth(), $factory->getEndOfLastMonth()],
+                'daterangepicker.thisYearUntilNow' => [$factory->createStartOfYear(), $factory->createDateTime('23:59:59')],
+            ];
 
-        $thisYear = (int) $factory->createStartOfYear()->format('Y');
-        for ($i = 0; $i < 3; $i++) {
-            $year = $thisYear - $i;
-            $ranges[$year] = [$year . '-01-01', $year . '-12-31'];
+            $thisYear = (int) $factory->createStartOfYear()->format('Y');
+            for ($i = 0; $i < 3; $i++) {
+                $year = $thisYear - $i;
+                $ranges[$year] = [$year . '-01-01', $year . '-12-31'];
+            }
+
+            $view->vars['ranges'] = $ranges;
+            $view->vars['rangeFormat'] = $options['format'];
         }
-
-        $view->vars['ranges'] = $ranges;
-        $view->vars['rangeFormat'] = $options['format'];
 
         $view->vars['attr'] = array_merge($view->vars['attr'], [
             'data-separator' => $options['separator'],
         ]);
+
+        if ($options['min_day'] !== null) {
+            $view->vars['attr'] = array_merge($view->vars['attr'], [
+                'min' => (\is_string($options['min_day']) ? $options['min_day'] : $options['min_day']->format('Y-m-d')), // @phpstan-ignore-line
+            ]);
+        }
+
+        if ($options['max_day'] !== null) {
+            $view->vars['attr'] = array_merge($view->vars['attr'], [
+                'max' => (\is_string($options['max_day']) ? $options['max_day'] : $options['max_day']->format('Y-m-d')), // @phpstan-ignore-line
+            ]);
+        }
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -134,6 +163,18 @@ final class DateRangeType extends AbstractType
                     $formatDate
                 );
 
+                $fallbackFormat = 'yyyy-MM-dd';
+                $fallbackPattern = (new FormFormatConverter())->convertToPattern($fallbackFormat . $separator . $fallbackFormat, false);
+
+                $fallbackTransformer = new DateTimeToLocalizedStringTransformer(
+                    $timezone,
+                    $timezone,
+                    IntlDateFormatter::MEDIUM,
+                    IntlDateFormatter::MEDIUM,
+                    IntlDateFormatter::GREGORIAN,
+                    $fallbackFormat
+                );
+
                 $range = new DateRange();
 
                 if (empty($dates) && $allowEmpty) {
@@ -144,7 +185,7 @@ final class DateRangeType extends AbstractType
                     throw new TransformationFailedException('Date range missing');
                 }
 
-                if (preg_match($pattern, $dates) !== 1) {
+                if (preg_match($pattern, $dates) !== 1 && preg_match($fallbackPattern, $dates) !== 1) {
                     throw new TransformationFailedException('Invalid date range given');
                 }
                 $values = explode($separator, $dates);
@@ -153,13 +194,23 @@ final class DateRangeType extends AbstractType
                     throw new TransformationFailedException('Invalid date range given');
                 }
 
-                $begin = $transformer->reverseTransform($values[0]);
+                try {
+                    $begin = $transformer->reverseTransform($values[0]);
+                } catch (TransformationFailedException $e) {
+                    // we always allow english format to simplify cross-linking
+                    $begin = $fallbackTransformer->reverseTransform($values[0]);
+                }
                 if ($begin === null) {
                     throw new TransformationFailedException('Invalid begin date given');
                 }
                 $range->setBegin($begin);
 
-                $end = $transformer->reverseTransform($values[1]);
+                try {
+                    $end = $transformer->reverseTransform($values[1]);
+                } catch (TransformationFailedException $e) {
+                    // we always allow english format to simplify cross-linking
+                    $end = $fallbackTransformer->reverseTransform($values[1]);
+                }
                 if ($end === null) {
                     throw new TransformationFailedException('Invalid end date given');
                 }

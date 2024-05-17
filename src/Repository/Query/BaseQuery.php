@@ -35,6 +35,7 @@ class BaseQuery
         'order' => self::ORDER_ASC,
         'searchTerm' => null,
     ];
+    private bool $isApiCall = false;
     private int $page = 1;
     private int $pageSize = self::DEFAULT_PAGESIZE;
     private string $orderBy = 'id';
@@ -141,8 +142,12 @@ class BaseQuery
         return $this->orderBy;
     }
 
-    public function setOrderBy(string $orderBy): self
+    public function setOrderBy(?string $orderBy): self
     {
+        if ($orderBy === null) {
+            $orderBy = (string) $this->defaults['orderBy']; // @phpstan-ignore-line
+        }
+
         $this->orderBy = $orderBy;
 
         return $this;
@@ -153,8 +158,12 @@ class BaseQuery
         return $this->order;
     }
 
-    public function setOrder(string $order): self
+    public function setOrder(?string $order): self
     {
+        if ($order === null) {
+            $order = (string) $this->defaults['order']; // @phpstan-ignore-line
+        }
+
         if (\in_array($order, [self::ORDER_ASC, self::ORDER_DESC])) {
             $this->order = $order;
         }
@@ -386,5 +395,15 @@ class BaseQuery
     public function isBookmarkSearch(): bool
     {
         return $this->bookmarkSearch;
+    }
+
+    public function setIsApiCall(bool $isApiCall): void
+    {
+        $this->isApiCall = $isApiCall;
+    }
+
+    public function isApiCall(): bool
+    {
+        return $this->isApiCall;
     }
 }

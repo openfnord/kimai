@@ -2,11 +2,8 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en" target-language="ko" datatype="plaintext" original="messages.en.xlf">
     <body>
-      <!--
-              Global template keys
-            -->
-      <trans-unit id="N7mikjJ" resname="time_tracking">
-        <source>time_tracking</source>
+      <trans-unit id="N7mikjJ" resname="time_tracking" xml:space="preserve">
+        <source>Time Tracking</source>
         <target state="translated">타임 트래킹</target>
       </trans-unit>
       <trans-unit id="inmIkP6" resname="yes">
@@ -147,7 +144,7 @@
             -->
       <trans-unit id="DodjLNR" resname="date">
         <source>date</source>
-        <target state="translated">일자</target>
+        <target state="translated">날짜</target>
       </trans-unit>
       <trans-unit id="BHk4pZ3" resname="starttime">
         <source>starttime</source>
@@ -170,7 +167,7 @@
         <target state="translated">사용자 이름</target>
       </trans-unit>
       <trans-unit id="yQRveje" resname="description">
-        <source>description</source>
+        <source>Description</source>
         <target state="translated">업무 보고</target>
       </trans-unit>
       <trans-unit id="gqNTf.D" resname="name">
@@ -199,7 +196,7 @@
       </trans-unit>
       <trans-unit id="BlGGO.X" resname="activity">
         <source>activity</source>
-        <target state="translated">업무</target>
+        <target state="translated">활동</target>
       </trans-unit>
       <trans-unit id="JEIQ5IQ" resname="project">
         <source>project</source>
@@ -729,7 +726,7 @@
       </trans-unit>
       <trans-unit id="dTHY7Mw" resname="timesheet.start">
         <source>timesheet.start</source>
-        <target state="translated">새로운 타임시트 생성하기</target>
+        <target state="needs-translation">새로운 타임시트 생성하기</target>
       </trans-unit>
       <!--
               TOOLBARS
@@ -849,14 +846,6 @@
       <trans-unit id="gRIArHS" resname="lastLogin">
         <source>lastLogin</source>
         <target>지난 로그인</target>
-      </trans-unit>
-      <trans-unit id="ICpl9sx" resname="appendTags">
-        <source>appendTags</source>
-        <target>태그 추가</target>
-      </trans-unit>
-      <trans-unit id="tl01EdS" resname="replaceTags">
-        <source>replaceTags</source>
-        <target>태그 교체</target>
       </trans-unit>
       <trans-unit id="1c0EQaz" resname="profile.registration_date">
         <source>profile.registration_date</source>
@@ -1070,8 +1059,8 @@
         <source>registration.check_email</source>
         <target>이메일이 %email%(으)로 전송되었습니다. 계정을 활성화하는 링크가 이메일에 포함되어 있으니 링크를 클릭하세요.</target>
       </trans-unit>
-      <trans-unit id="BXBFJP8" resname="stats.workingTime">
-        <source>stats.workingTime</source>
+      <trans-unit id="BXBFJP8" resname="stats.workingTime" xml:space="preserve">
+        <source>Working hours</source>
         <target>근무 시간</target>
       </trans-unit>
       <trans-unit id="ViUuILv" resname="includeBudgetType_month">
@@ -1082,9 +1071,9 @@
         <source>stats.amountFinancialYear</source>
         <target>올해 회계연도 수익</target>
       </trans-unit>
-      <trans-unit id="_cY.wHP" resname="resetting.check_email">
-        <source>resetting.check_email</source>
-        <target>비밀번호를 재설정 안내 이메일을 보내 드렸습니다.이메일에 나와있는 링크를 클릭하세요.알림:%tokenLifetime% 시간 내에 한번만 새 비밀번호를 요청할 수 있습니다. 이메일을 받지 못했다면 스팸메일함을 확인하시거나 재시도하시기 바랍니다.</target>
+      <trans-unit id="_cY.wHP" resname="resetting.check_email" xml:space="preserve">
+        <source>An email has been sent with a link to reset your password. Note: You can only request a new password once every %tokenLifetime% hours. If you don't receive the email, please check your spam folder or try again.</source>
+        <target state="needs-translation">비밀번호를 재설정 안내 이메일을 보내 드렸습니다.이메일에 나와있는 링크를 클릭하세요.알림:%tokenLifetime% 시간 내에 한번만 새 비밀번호를 요청할 수 있습니다. 이메일을 받지 못했다면 스팸메일함을 확인하시거나 재시도하시기 바랍니다.</target>
       </trans-unit>
       <trans-unit id="pX_3dNm" resname="stats.revenue">
         <source>stats.revenue</source>
@@ -1217,6 +1206,34 @@
       <trans-unit id="Eq2E_Rd" resname="menu.apps">
         <source>Apps</source>
         <target state="translated">애플리케이션</target>
+      </trans-unit>
+      <trans-unit id="EYXzfTO" resname="deleted">
+        <source>deleted</source>
+        <target state="translated">삭제됨</target>
+      </trans-unit>
+      <trans-unit id="EGpYQvx" resname="help">
+        <source>help</source>
+        <target state="translated">도움말</target>
+      </trans-unit>
+      <trans-unit id="oYYDCG5" resname="support">
+        <source>support</source>
+        <target state="translated">도움</target>
+      </trans-unit>
+      <trans-unit id="mz4ieCN" resname="donate">
+        <source>donate</source>
+        <target state="translated">Kimai의 미래를 위해 기부하기</target>
+      </trans-unit>
+      <trans-unit id="cR5DD88" resname="invoice_number_generator.date">
+        <source>invoice_number_generator.date</source>
+        <target state="translated">날짜</target>
+      </trans-unit>
+      <trans-unit id="Qh1X4Vu" resname="invoice_number_generator.default">
+        <source>invoice_number_generator.default</source>
+        <target>구성된 형식</target>
+      </trans-unit>
+      <trans-unit id="UI6nPeP" resname="invoice_number_generator">
+        <source>invoice_number_generator</source>
+        <target state="translated">청구서번호-생성기</target>
       </trans-unit>
     </body>
   </file>

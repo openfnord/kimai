@@ -14,10 +14,11 @@ use App\Entity\User;
 use App\Event\CalendarConfigurationEvent;
 use App\Event\CalendarDragAndDropSourceEvent;
 use App\Event\CalendarGoogleSourceEvent;
+use App\Event\CalendarSourceEvent;
 use App\Event\RecentActivityEvent;
 use App\Repository\TimesheetRepository;
 use App\Utils\Color;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 final class CalendarService
 {
@@ -79,6 +80,23 @@ final class CalendarService
         }
 
         return new Google($apiKey, $sources);
+    }
+
+    /**
+     * @return array<CalendarSource>
+     */
+    public function getSources(User $user): array
+    {
+        $sources = [];
+
+        $event = new CalendarSourceEvent($user);
+        $this->dispatcher->dispatch($event);
+
+        foreach ($event->getSources() as $source) {
+            $sources[] = $source;
+        }
+
+        return $sources;
     }
 
     public function getConfiguration(): array

@@ -21,8 +21,8 @@ trait CommentTableTypeTrait
     #[ORM\Column(name: 'message', type: 'text', nullable: false)]
     #[Assert\NotNull]
     private ?string $message = null;
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\User')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private ?User $createdBy = null;
     #[ORM\Column(name: 'created_at', type: 'datetime', nullable: false)]

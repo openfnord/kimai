@@ -2,12 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en" target-language="ja" datatype="plaintext" original="messages.en.xlf">
     <body>
-      <!--
-              Global template keys
-            -->
-      <trans-unit id="N7mikjJ" resname="time_tracking">
-        <source>time_tracking</source>
-        <target>タイムトラッキング</target>
+      <trans-unit id="N7mikjJ" resname="time_tracking" xml:space="preserve">
+        <source>Time Tracking</source>
+        <target state="translated">タイムトラッキング</target>
       </trans-unit>
       <trans-unit id="inmIkP6" resname="yes">
         <source>yes</source>
@@ -166,8 +163,8 @@
         <target>ユーザー名</target>
       </trans-unit>
       <trans-unit id="yQRveje" resname="description">
-        <source>description</source>
-        <target>説明</target>
+        <source>Description</source>
+        <target state="translated">説明</target>
       </trans-unit>
       <trans-unit id="gqNTf.D" resname="name">
         <source>name</source>
@@ -709,7 +706,7 @@
       </trans-unit>
       <trans-unit id="dTHY7Mw" resname="timesheet.start">
         <source>timesheet.start</source>
-        <target>新たに時間の記録を始める</target>
+        <target state="needs-translation">新たに時間の記録を始める</target>
       </trans-unit>
       <!--
               TOOLBARS
@@ -854,9 +851,9 @@
         <source>Display of entries in selection lists</source>
         <target state="translated">選択リストのエントリーを表示</target>
       </trans-unit>
-      <trans-unit id="_cY.wHP" resname="resetting.check_email" approved="no">
-        <source>An email has been sent. It contains a link you must click to reset your password. Note: You can only request a new password once within %tokenLifetime% hours. If you don't get an email check your spam folder or try again.</source>
-        <target state="translated">メールアドレスが送られました。パスワードをリセットするにはメール中のリンクをクリックしてください。注意：%tokenLifetime%時間の間に新しいパスワードを設定し直すことができます。もしメールが届かない場合は迷惑フォルダーをチェックしてください。</target>
+      <trans-unit id="_cY.wHP" resname="resetting.check_email" approved="no" xml:space="preserve">
+        <source>An email has been sent with a link to reset your password. Note: You can only request a new password once every %tokenLifetime% hours. If you don't receive the email, please check your spam folder or try again.</source>
+        <target state="needs-translation">メールアドレスが送られました。パスワードをリセットするにはメール中のリンクをクリックしてください。注意：%tokenLifetime%時間の間に新しいパスワードを設定し直すことができます。もしメールが届かない場合は迷惑フォルダーをチェックしてください。</target>
       </trans-unit>
       <trans-unit id="nqEYrfk" resname="security.unlock.intro">
         <source>security.unlock.intro</source>
@@ -881,6 +878,42 @@
       <trans-unit id="C2TGff0" resname="error.directory_protected">
         <source>error.directory_protected</source>
         <target state="translated">"%dir%"ディレクトリは書き込み制限がかけられています。</target>
+      </trans-unit>
+      <trans-unit id="EYXzfTO" resname="deleted">
+        <source>deleted</source>
+        <target state="translated">削除されました</target>
+      </trans-unit>
+      <trans-unit id="EX27Gdt" resname="created_by">
+        <source>created_by</source>
+        <target state="translated">によって作成されました</target>
+      </trans-unit>
+      <trans-unit id="6Hip2aF" resname="created_at">
+        <source>created_at</source>
+        <target state="translated">に作成されました</target>
+      </trans-unit>
+      <trans-unit id="JGaf9IK" resname="Doctor">
+        <source>Doctor</source>
+        <target state="translated">ドクター</target>
+      </trans-unit>
+      <trans-unit id="EGpYQvx" resname="help">
+        <source>help</source>
+        <target>ドキュメント</target>
+      </trans-unit>
+      <trans-unit id="oYYDCG5" resname="support">
+        <source>support</source>
+        <target>サポート</target>
+      </trans-unit>
+      <trans-unit id="mz4ieCN" resname="donate">
+        <source>donate</source>
+        <target>Kimai の発展のために寄付を行う</target>
+      </trans-unit>
+      <trans-unit id="cR5DD88" resname="invoice_number_generator.date">
+        <source>invoice_number_generator.date</source>
+        <target>日付</target>
+      </trans-unit>
+      <trans-unit id="UI6nPeP" resname="invoice_number_generator">
+        <source>invoice_number_generator</source>
+        <target>請求書番号 ジェネレーター</target>
       </trans-unit>
     </body>
   </file>

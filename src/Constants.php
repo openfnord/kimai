@@ -17,11 +17,11 @@ class Constants
     /**
      * The current release version
      */
-    public const VERSION = '2.0.26';
+    public const VERSION = '2.16.1';
     /**
      * The current release: major * 10000 + minor * 100 + patch
      */
-    public const VERSION_ID = 20026;
+    public const VERSION_ID = 21601;
     /**
      * The software name
      */
@@ -31,17 +31,13 @@ class Constants
      */
     public const GITHUB = 'https://github.com/kimai/kimai/';
     /**
-     * The Github repository name
+     * The GitHub repository name
      */
     public const GITHUB_REPO = 'kimai/kimai';
     /**
      * Homepage, used in multiple views
      */
     public const HOMEPAGE = 'https://www.kimai.org';
-    /**
-     * Application wide default locale
-     */
-    public const DEFAULT_LOCALE = 'en';
     /**
      * Default color for Customer, Project and Activity entities
      */

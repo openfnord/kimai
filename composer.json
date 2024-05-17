@@ -14,7 +14,7 @@
         }
     ],
     "require": {
-        "php": "8.1.*||8.2.*",
+        "php": "8.1.*||8.2.*||8.3.*",
         "ext-gd": "*",
         "ext-intl": "*",
         "ext-json": "*",
@@ -30,12 +30,12 @@
         "doctrine/doctrine-bundle": "^2.7",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.8",
-        "endroid/qr-code": "^4.4.9",
+        "endroid/qr-code": "^4.8",
         "erusev/parsedown": "^1.6",
         "friendsofsymfony/rest-bundle": "^3.0",
         "gedmo/doctrine-extensions": "^3.6",
         "jms/serializer-bundle": "^5.0",
-        "kevinpapst/tabler-bundle": "^0.21",
+        "kevinpapst/tabler-bundle": "^1.2",
         "league/csv": "^9.4",
         "mpdf/mpdf": "^8.0",
         "nelmio/api-doc-bundle": "^4.0",
@@ -44,8 +44,8 @@
         "pagerfanta/pagerfanta": "^3.0",
         "phpoffice/phpspreadsheet": "^1.16",
         "phpoffice/phpword": "^1.0",
-        "psr/container": "^1.0||^2.0",
-        "psr/log": "^2.0||^3.0",
+        "psr/container": "^2.0",
+        "psr/log": "^3.0",
         "scheb/2fa-backup-code": "^6.2",
         "scheb/2fa-bundle": "^6.2",
         "scheb/2fa-totp": "^6.2",
@@ -59,6 +59,7 @@
         "symfony/http-client": "^6.0",
         "symfony/intl": "^6.0",
         "symfony/mailer": "^6.0",
+        "symfony/mime": "^6.0",
         "symfony/monolog-bundle": "^3.4",
         "symfony/rate-limiter": "^6.0",
         "symfony/runtime": "^6.0",
@@ -68,7 +69,7 @@
         "symfony/translation": "^6.0",
         "symfony/twig-bundle": "^6.0",
         "symfony/validator": "^6.0",
-        "symfony/webpack-encore-bundle": "^1.16",
+        "symfony/webpack-encore-bundle": "^2.0",
         "symfony/yaml": "^6.0",
         "twig/cssinliner-extra": "^3.0",
         "twig/extra-bundle": "^3.0",
@@ -78,11 +79,12 @@
     },
     "require-dev": {
         "ext-simplexml": "*",
-        "dama/doctrine-test-bundle": "^7.0",
+        "dama/doctrine-test-bundle": "^8.0",
         "doctrine/doctrine-fixtures-bundle": "^3.2",
         "fakerphp/faker": "^1.15",
         "friendsofphp/php-cs-fixer": "^3.3",
         "phpstan/phpstan": "^1.0",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
         "phpstan/phpstan-doctrine": "^1.0",
         "phpstan/phpstan-phpunit": "^1.0",
         "phpstan/phpstan-strict-rules": "^1.0",
@@ -129,6 +131,7 @@
         }
     },
     "replace": {
+        "symfony/polyfill-ctype": "*",
         "symfony/polyfill-mbstring": "*",
         "symfony/polyfill-intl": "*",
         "symfony/polyfill-iconv": "*",
@@ -172,14 +175,20 @@
             "bin/console lint:container",
             "bin/console lint:yaml config --parse-tags",
             "bin/console lint:twig templates --show-deprecations",
-            "bin/console lint:xliff translations",
-            "bin/console doctrine:schema:validate --skip-sync -vvv --no-interaction"
+            "bin/console doctrine:schema:validate --skip-sync -vvv --no-interaction",
+            "bin/console lint:xliff translations"
         ],
         "tests": "vendor/bin/phpunit tests/",
         "tests-unit": "vendor/bin/phpunit --exclude-group integration tests/",
         "tests-integration": "vendor/bin/phpunit --group integration tests/",
         "phpstan": [
-            "vendor/bin/phpstan analyse -c phpstan.neon",
+            "@phpstan-src",
+            "@phpstan-tests"
+        ],
+        "phpstan-src": [
+            "vendor/bin/phpstan analyse -c phpstan.neon"
+        ],
+        "phpstan-tests": [
             "vendor/bin/phpstan analyse -c tests/phpstan.neon"
         ],
         "codestyle": "vendor/bin/php-cs-fixer fix --dry-run --verbose --show-progress=none",
@@ -189,13 +198,10 @@
         "symfony/symfony": "*"
     },
     "extra": {
-        "branch-alias": {
-            "dev-main": "2.0.x-dev"
-        },
         "symfony": {
             "id": "01C3FWRDJJEX9K6Y3A4XDFXPBR",
             "allow-contrib": true,
-            "require": "6.2.*"
+            "require": "6.4.*"
         }
     }
 }

@@ -26,7 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Serializer\ExclusionPolicy('all')]
 #[Serializer\VirtualProperty('CustomerName', exp: 'object.getCustomer() === null ? null : object.getCustomer().getName()', options: [new Serializer\SerializedName('parentTitle'), new Serializer\Type(name: 'string'), new Serializer\Groups(['Project'])])]
 #[Serializer\VirtualProperty('CustomerAsId', exp: 'object.getCustomer() === null ? null : object.getCustomer().getId()', options: [new Serializer\SerializedName('customer'), new Serializer\Type(name: 'integer'), new Serializer\Groups(['Project', 'Team', 'Not_Expanded'])])]
-#[Exporter\Order(['id', 'name', 'customer', 'orderNumber', 'orderDate', 'start', 'end', 'budget', 'timeBudget', 'budgetType', 'color', 'visible', 'teams', 'comment', 'billable'])]
+#[Exporter\Order(['id', 'name', 'customer', 'orderNumber', 'orderDate', 'start', 'end', 'budget', 'timeBudget', 'budgetType', 'color', 'visible', 'teams', 'comment', 'billable', 'number'])]
 #[Exporter\Expose(name: 'customer', label: 'customer', exp: 'object.getCustomer() === null ? null : object.getCustomer().getName()')]
 #[Constraints\Project]
 class Project implements EntityWithMetaFields, EntityWithBudget
@@ -47,8 +47,8 @@ class Project implements EntityWithMetaFields, EntityWithBudget
     /**
      * Customer for this project
      */
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Customer')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Customer::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     #[Serializer\Expose]
     #[Serializer\Groups(['Subresource', 'Expanded'])]
@@ -59,7 +59,7 @@ class Project implements EntityWithMetaFields, EntityWithBudget
      */
     #[ORM\Column(name: 'name', type: 'string', length: 150, nullable: false)]
     #[Assert\NotNull]
-    #[Assert\Length(min: 3, max: 150)]
+    #[Assert\Length(min: 2, max: 150)]
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     #[Exporter\Expose(label: 'name')]
@@ -137,7 +137,7 @@ class Project implements EntityWithMetaFields, EntityWithBudget
      *
      * @var Collection<ProjectMeta>
      */
-    #[ORM\OneToMany(targetEntity: 'App\Entity\ProjectMeta', mappedBy: 'project', cascade: ['persist'])]
+    #[ORM\OneToMany(mappedBy: 'project', targetEntity: ProjectMeta::class, cascade: ['persist'])]
     #[Serializer\Expose]
     #[Serializer\Groups(['Project'])]
     #[Serializer\Type(name: 'array<App\Entity\ProjectMeta>')]
@@ -152,7 +152,7 @@ class Project implements EntityWithMetaFields, EntityWithBudget
     #[ORM\JoinTable(name: 'kimai2_projects_teams')]
     #[ORM\JoinColumn(name: 'project_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(name: 'team_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[ORM\ManyToMany(targetEntity: 'App\Entity\Team', cascade: ['persist'], inversedBy: 'projects')]
+    #[ORM\ManyToMany(targetEntity: Team::class, inversedBy: 'projects', cascade: ['persist'])]
     #[Serializer\Expose]
     #[Serializer\Groups(['Project'])]
     #[OA\Property(type: 'array', items: new OA\Items(ref: '#/components/schemas/Team'))]
@@ -167,6 +167,12 @@ class Project implements EntityWithMetaFields, EntityWithBudget
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     private bool $globalActivities = true;
+    #[ORM\Column(name: 'number', type: 'string', length: 10, nullable: true)]
+    #[Assert\Length(max: 10)]
+    #[Serializer\Expose]
+    #[Serializer\Groups(['Default'])]
+    #[Exporter\Expose(label: 'project_number')]
+    private ?string $number = null;
 
     public function __construct()
     {
@@ -253,7 +259,7 @@ class Project implements EntityWithMetaFields, EntityWithBudget
      * Make sure begin and end date have the correct timezone.
      * This will be called once for each item after being loaded from the database.
      */
-    protected function localizeDates()
+    protected function localizeDates(): void
     {
         if ($this->localized) {
             return;
@@ -392,7 +398,7 @@ class Project implements EntityWithMetaFields, EntityWithBudget
         return $this;
     }
 
-    public function addTeam(Team $team)
+    public function addTeam(Team $team): void
     {
         if ($this->teams->contains($team)) {
             return;
@@ -402,7 +408,7 @@ class Project implements EntityWithMetaFields, EntityWithBudget
         $team->addProject($this);
     }
 
-    public function removeTeam(Team $team)
+    public function removeTeam(Team $team): void
     {
         if (!$this->teams->contains($team)) {
             return;
@@ -447,6 +453,16 @@ class Project implements EntityWithMetaFields, EntityWithBudget
         $this->invoiceText = $invoiceText;
     }
 
+    public function setNumber(?string $number): void
+    {
+        $this->number = $number;
+    }
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
     public function __toString(): string
     {
         return $this->getName();
@@ -454,7 +470,7 @@ class Project implements EntityWithMetaFields, EntityWithBudget
 
     public function __clone()
     {
-        if ($this->id) {
+        if ($this->id !== null) {
             $this->id = null;
         }
 

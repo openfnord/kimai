@@ -38,17 +38,17 @@ use App\Repository\Query\InvoiceQuery;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
 use Exception;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Twig\Environment;
 
 /**
@@ -387,7 +387,7 @@ final class InvoiceController extends AbstractController
 
     #[Route(path: '/export', name: 'invoice_export', methods: ['GET'])]
     #[IsGranted('view_invoice')]
-    public function exportAction(Request $request, EntityWithMetaFieldsExporter $exporter)
+    public function exportAction(Request $request, EntityWithMetaFieldsExporter $exporter): Response
     {
         $query = new InvoiceArchiveQuery();
         $query->setCurrentUser($this->getUser());
@@ -433,7 +433,7 @@ final class InvoiceController extends AbstractController
         $table->addColumn('calculator', ['class' => 'd-none', 'orderBy' => false, 'title' => 'invoice_calculator', 'translation_domain' => 'invoice-calculator']);
         $table->addColumn('renderer', ['class' => 'd-none', 'orderBy' => false, 'title' => 'invoice_renderer', 'translation_domain' => 'invoice-renderer']);
         $table->addColumn('language', ['class' => 'd-none text-nowrap', 'orderBy' => false]);
-        $table->addColumn('actions', ['class' => 'actions', 'orderBy' => false]);
+        $table->addColumn('actions', ['class' => 'actions']);
 
         $page = $this->createPageSetup('admin_invoice_template.title');
         $page->setDataTable($table);
@@ -466,36 +466,6 @@ final class InvoiceController extends AbstractController
         }
 
         throw $this->createNotFoundException('Unknown document: ' . $document);
-    }
-
-    #[Route(path: '/document_reload/{document}', name: 'admin_invoice_document_reload', methods: ['GET', 'POST'])]
-    #[IsGranted('upload_invoice_template')]
-    public function reloadDocument(string $document, Environment $twig): Response
-    {
-        $event = new InvoiceDocumentsEvent($this->service->getDocuments(true));
-        $this->dispatcher->dispatch($event);
-
-        $reloaded = false;
-
-        foreach ($event->getInvoiceDocuments() as $doc) {
-            if ($document === $doc->getId() && $doc->isTwig()) {
-                $reloaded = true;
-                try {
-                    $twig->enableAutoReload();
-                    $twig->load('@invoice/' . basename($doc->getFilename()));
-                    $twig->disableAutoReload();
-                    $this->flashSuccess('Reloaded template');
-                } catch (Exception $ex) {
-                    $this->flashException($ex, 'Failed to reload template: ' . $ex->getMessage());
-                }
-            }
-        }
-
-        if (!$reloaded) {
-            throw $this->createNotFoundException('Unknown document: ' . $document);
-        }
-
-        return $this->redirectToRoute('admin_invoice_document_upload');
     }
 
     #[Route(path: '/document_upload', name: 'admin_invoice_document_upload', methods: ['GET', 'POST'])]
