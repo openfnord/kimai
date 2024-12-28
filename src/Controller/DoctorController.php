@@ -253,7 +253,6 @@ final class DoctorController extends AbstractController
             'max_execution_time',
             'date.timezone',
             'allow_url_fopen',
-            'allow_url_include',
             'default_charset',
             'default_mimetype',
             'display_errors',
@@ -304,12 +303,12 @@ final class DoctorController extends AbstractController
         )) {
             foreach ($matches as $match) {
                 $fn = $plainText;
-                if (isset($match[3])) {
+                if (isset($match[2]) && isset($match[3])) {
                     $keys1 = array_keys($phpinfo);
                     $phpinfo[end($keys1)][$fn($match[2])] = isset($match[4]) ? [$fn($match[3]), $fn($match[4])] : $fn($match[3]);
                 } else {
                     $keys1 = array_keys($phpinfo);
-                    $phpinfo[end($keys1)][] = $fn($match[2]);
+                    $phpinfo[end($keys1)][] = $fn($match[2]); // @phpstan-ignore-line
                 }
             }
         }

@@ -9,6 +9,8 @@
 
 namespace App\Configuration;
 
+use App\Constants;
+
 final class SystemConfiguration
 {
     private bool $initialized = false;
@@ -31,10 +33,7 @@ final class SystemConfiguration
     }
 
     /**
-     * Set an array item to a given value using "dot" notation.
-     * If no key is given to the method, the entire array will be replaced.
-     *
-     * @internal
+     * Set a new or replace an existing system configuration.
      */
     public function set(string $key, mixed $value): void
     {
@@ -454,6 +453,11 @@ final class SystemConfiguration
         return $this->getIncrement('quick_entry.recent_activities', 5, 0);
     }
 
+    public function isBreakTimeEnabled(): bool
+    {
+        return (bool) $this->find('timesheet.rules.break_time_active');
+    }
+
     // ========== Company configurations ==========
 
     public function getFinancialYearStart(): ?string
@@ -479,6 +483,9 @@ final class SystemConfiguration
         return (bool) $this->find('theme.avatar_url');
     }
 
+    /**
+     * @internal will be made private soon after 2.18.0 - do not access this method directly, but through getThemeColors()
+     */
     public function getThemeColorChoices(): string
     {
         $config = $this->find('theme.color_choices');
@@ -487,6 +494,40 @@ final class SystemConfiguration
         }
 
         return 'Silver|#c0c0c0';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getThemeColors(): array
+    {
+        $config = explode(',', $this->getThemeColorChoices());
+
+        $colors = [];
+        foreach ($config as $item) {
+            if (empty($item)) {
+                continue;
+            }
+            $item = explode('|', $item);
+            $key = $item[0];
+            $value = $key;
+
+            if (\count($item) > 1) {
+                $value = $item[1];
+            }
+
+            if (empty($key)) {
+                $key = $value;
+            }
+
+            if ($value === Constants::DEFAULT_COLOR) {
+                continue;
+            }
+
+            $colors[$key] = $value;
+        }
+
+        return array_unique($colors);
     }
 
     // ========== Projects ==========

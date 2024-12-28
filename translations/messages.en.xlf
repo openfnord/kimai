@@ -96,7 +96,7 @@
       </trans-unit>
       <trans-unit id="J258iS6" resname="update_multiple">
         <source>update_multiple</source>
-        <target>%action% %count% entries?</target>
+        <target>%action% %count% entries</target>
       </trans-unit>
       <trans-unit id="OTDmccn" resname="attachments">
         <source>attachments</source>
@@ -126,7 +126,6 @@
         <source>Display of entries in selection lists</source>
         <target>Display of entries in selection lists</target>
       </trans-unit>
-      <!-- Login / Security -->
       <trans-unit id="XohImNo" resname="password" approved="yes">
         <source>Password</source>
         <target state="final">Password</target>
@@ -175,7 +174,6 @@
         <source>security.unlock.button</source>
         <target>Unlock</target>
       </trans-unit>
-      <!-- Menu / Navbar items -->
       <trans-unit id="UoOv6mx" resname="menu.homepage">
         <source>menu.homepage</source>
         <target>Dashboard</target>
@@ -248,7 +246,6 @@
         <source>Doctor</source>
         <target>Doctor</target>
       </trans-unit>
-      <!-- Error templates -->
       <trans-unit id="Vz3Igj3" resname="error.no_entries_found">
         <source>error.no_entries_found</source>
         <target>No entries were found based on your selected filters.</target>
@@ -269,7 +266,6 @@
         <source>error.directory_protected</source>
         <target>Directory "%dir%" is write protected.</target>
       </trans-unit>
-      <!-- General labels -->
       <trans-unit id="EYXzfTO" resname="deleted">
         <source>deleted</source>
         <target>Deleted</target>
@@ -281,6 +277,10 @@
       <trans-unit id="6Hip2aF" resname="created_at">
         <source>created_at</source>
         <target>Created at</target>
+      </trans-unit>
+      <trans-unit id="QG7.sen" resname="created">
+        <source>Created</source>
+        <target>Created</target>
       </trans-unit>
       <trans-unit id="DodjLNR" resname="date">
         <source>date</source>
@@ -356,7 +356,7 @@
       </trans-unit>
       <trans-unit id="qbD0dHa" resname="timeBudget">
         <source>timeBudget</source>
-        <target>Time budget</target>
+        <target>Hourly quota</target>
       </trans-unit>
       <trans-unit id="BlGGO.X" resname="activity">
         <source>activity</source>
@@ -438,7 +438,6 @@
         <source>help.billable</source>
         <target>If the setting is off, all time entries recorded in the future will be marked as "not billable".</target>
       </trans-unit>
-      <!-- Buttons & Actions -->
       <trans-unit id="Kw3N1AA" resname="actions">
         <source>actions</source>
         <target>Actions</target>
@@ -467,7 +466,6 @@
         <source>action.close</source>
         <target>Close</target>
       </trans-unit>
-      <!-- Dashboard -->
       <trans-unit id="3bqLM8Q" resname="dashboard.title">
         <source>dashboard.title</source>
         <target>Dashboard</target>
@@ -476,7 +474,6 @@
         <source>dashboard.edit_mode</source>
         <target>You can rearrange your widgets using drag &amp; drop. Adding widgets saves pending changes.</target>
       </trans-unit>
-      <!-- Widgets -->
       <trans-unit id="muzkQpM" resname="toggle_dropdown">
         <source>toggle_dropdown</source>
         <target>Show menu</target>
@@ -493,7 +490,6 @@
         <source>progress</source>
         <target>Progress</target>
       </trans-unit>
-      <!-- Timesheet -->
       <trans-unit id="VXj0Y3h" resname="timesheet.title">
         <source>timesheet.title</source>
         <target>My times</target>
@@ -534,7 +530,6 @@
         <source>append</source>
         <target>Append</target>
       </trans-unit>
-      <!-- Column modal -->
       <trans-unit id="UbnqJLn" resname="modal.columns.title">
         <source>modal.columns.title</source>
         <target>Customize display</target>
@@ -555,7 +550,6 @@
         <source>mobile</source>
         <target>Mobile</target>
       </trans-unit>
-      <!-- User profile -->
       <trans-unit id="1_wnK76" resname="profile.title">
         <source>profile.title</source>
         <target>User profile</target>
@@ -566,7 +560,7 @@
       </trans-unit>
       <trans-unit id="Fm.kwVn" resname="profile.first_entry">
         <source>profile.first_entry</source>
-        <target>Working since</target>
+        <target>First working day</target>
       </trans-unit>
       <trans-unit id="1c0EQaz" resname="profile.registration_date">
         <source>profile.registration_date</source>
@@ -580,7 +574,6 @@
         <source>profile.password</source>
         <target>Password</target>
       </trans-unit>
-      <!-- 2FA  -->
       <trans-unit id="FeFBn_3" resname="profile.2fa">
         <source>profile.2fa</source>
         <target>Two-Factor (2FA)</target>
@@ -601,7 +594,6 @@
         <source>login.2fa_label</source>
         <target>Confirmation code</target>
       </trans-unit>
-      <!-- END 2FA  -->
       <trans-unit id="Z34ZpjK" resname="profile.api-token">
         <source>profile.api-token</source>
         <target>API Access</target>
@@ -648,7 +640,7 @@
       </trans-unit>
       <trans-unit id="1btzNDa" resname="work_times_should">
         <source>Expected number of hours</source>
-        <target>Expected number of hours</target>
+        <target>Expected hours</target>
       </trans-unit>
       <trans-unit id="s9NPI3v" resname="work_times_should.none_configured">
         <source>work_times_should.none_configured</source>
@@ -656,10 +648,6 @@
       </trans-unit>
       <trans-unit id="31dFXhR" resname="work_times_is">
         <source>work_times_is</source>
-        <target>Is-hours</target>
-      </trans-unit>
-      <trans-unit id="uHrZlbq" resname="work_times_result">
-        <source>work_times_result</source>
         <target>Hours worked</target>
       </trans-unit>
       <trans-unit id="8yqaKzX" resname="confirmed_by_at">
@@ -714,7 +702,6 @@
         <source>notifications</source>
         <target>Notifications</target>
       </trans-unit>
-      <!-- Notifications -->
       <trans-unit id="0ZWvn12" resname="notifications.welcome">
         <source>notifications.welcome</source>
         <target>Thank you for agreeing to notifications!</target>
@@ -723,7 +710,6 @@
         <source>You have rejected notifications. Please refer to your web-browser documentation to find out how to turn them on.</source>
         <target state="translated">You have rejected notifications. Please refer to your web-browser documentation to find out how to turn them on.</target>
       </trans-unit>
-      <!-- Options for user-preference calendar_initial_view -->
       <trans-unit id="pcfRcZ4" resname="month">
         <source>month</source>
         <target>Month</target>
@@ -748,12 +734,10 @@
         <source>update_browser_title</source>
         <target>Update browser title</target>
       </trans-unit>
-      <!-- User timesheet calendar -->
       <trans-unit id="UVJ5Die" resname="calendar">
         <source>calendar</source>
         <target>Calendar</target>
       </trans-unit>
-      <!-- Projects -->
       <trans-unit id="Xyjr.V." resname="project_start">
         <source>project_start</source>
         <target>Project start</target>
@@ -770,7 +754,6 @@
         <source>Activity number</source>
         <target>Activity number</target>
       </trans-unit>
-      <!-- Customer -->
       <trans-unit id="EohvnQA" resname="number">
         <source>number</source>
         <target>Account</target>
@@ -823,7 +806,6 @@
         <source>currency</source>
         <target>Currency</target>
       </trans-unit>
-      <!-- Users -->
       <trans-unit id="GgpqNso" resname="alias">
         <source>alias</source>
         <target>Name</target>
@@ -868,7 +850,6 @@
         <source>Allowed character: A-Z and _ (min. 5 uppercase characters)</source>
         <target state="translated">Allowed character: A-Z and _ (min. 5 uppercase characters)</target>
       </trans-unit>
-      <!-- Plugins -->
       <trans-unit id="XKTzhQz" resname="version">
         <source>version</source>
         <target>Version</target>
@@ -877,7 +858,6 @@
         <source>plugin.installed</source>
         <target>Installed plugins</target>
       </trans-unit>
-      <!-- ROLES -->
       <trans-unit id="WRuKTcz" resname="ROLE_SUPER_ADMIN">
         <source>ROLE_SUPER_ADMIN</source>
         <target>System-Admin</target>
@@ -894,7 +874,6 @@
         <source>ROLE_USER</source>
         <target>User</target>
       </trans-unit>
-      <!-- Statistics data for Dashboard & Users profile -->
       <trans-unit id="lfSTZGe" resname="stats.workingTimeToday">
         <source>stats.workingTimeToday</source>
         <target>Today, %day%</target>
@@ -923,9 +902,9 @@
         <source>Working hours</source>
         <target state="final">Working hours</target>
       </trans-unit>
-      <trans-unit id="pX_3dNm" resname="stats.revenue">
-        <source>stats.revenue</source>
-        <target>Revenues</target>
+      <trans-unit id="Nx9_QiO" resname="revenue">
+        <source>revenue</source>
+        <target>Revenue</target>
       </trans-unit>
       <trans-unit id="TdBJBAl" resname="stats.durationToday">
         <source>stats.durationToday</source>
@@ -1079,7 +1058,6 @@
         <source>stats.percentUsedLeft_month</source>
         <target>%percent%% used (%left% are still open this month)</target>
       </trans-unit>
-      <!-- Invoice -->
       <trans-unit id="Oq.KtC6" resname="admin_invoice_template.title">
         <source>admin_invoice_template.title</source>
         <target>Invoice template</target>
@@ -1276,15 +1254,30 @@
         <source>status.approved</source>
         <target>Approved</target>
       </trans-unit>
+      <trans-unit id="dOIWgOr" resname="approve">
+        <source>approve</source>
+        <target>Approve</target>
+      </trans-unit>
       <trans-unit id="Na24cyT" resname="status.requested">
         <source>status.requested</source>
         <target>Requested</target>
+      </trans-unit>
+      <trans-unit id="H1i5FFs" resname="request">
+        <source>request</source>
+        <target>Request</target>
+      </trans-unit>
+      <trans-unit id="YzOSTim" resname="status.rejected">
+        <source>status.rejected</source>
+        <target>Rejcted</target>
+      </trans-unit>
+      <trans-unit id="CE6ZCkm" resname="reject">
+        <source>reject</source>
+        <target>Reject</target>
       </trans-unit>
       <trans-unit id="crrlEUA" resname="preview.skipped_rows">
         <source>Skipped preview of %rows% more rows …</source>
         <target state="translated">Skipped preview of %rows% more rows …</target>
       </trans-unit>
-      <!-- Export -->
       <trans-unit id="1GruCMx" resname="export">
         <source>export</source>
         <target>Export</target>
@@ -1325,7 +1318,6 @@
         <source>type</source>
         <target>Type</target>
       </trans-unit>
-      <!-- Navbar - recent entries and activities -->
       <trans-unit id="OxdYMR3" resname="active.entries">
         <source>active.entries</source>
         <target>Your active time measurements</target>
@@ -1342,7 +1334,6 @@
         <source>timesheet.stop</source>
         <target>Stop time-tracking</target>
       </trans-unit>
-      <!-- TOOLBARS -->
       <trans-unit id="igCkqAP" resname="pageSize">
         <source>pageSize</source>
         <target>Page size</target>
@@ -1487,7 +1478,6 @@
         <source>default_value_new</source>
         <target>Default values for new entries</target>
       </trans-unit>
-      <!-- QUICK ENTRIES -->
       <trans-unit id="f8oNzSP" resname="quick_entry.title">
         <source>quick_entry.title</source>
         <target>Weekly hours</target>
@@ -1495,6 +1485,10 @@
       <trans-unit id="IPHM4iP" resname="updated_at">
         <source>Updated at</source>
         <target>Updated at</target>
+      </trans-unit>
+      <trans-unit id="J_teUVB" resname="updated">
+        <source>Updated</source>
+        <target>Updated</target>
       </trans-unit>
       <trans-unit id="nlwMf5w" resname="invoice_document.max_reached">
         <source>invoice_document.max_reached</source>
@@ -1620,17 +1614,13 @@
         <source>sickness</source>
         <target>Sickness</target>
       </trans-unit>
-      <trans-unit id="Nw2x5hI" resname="sickness_child">
-        <source>sickness_child</source>
-        <target>Sickness of a child</target>
+      <trans-unit id="Nw2x5hI" resname="sickness_child" xml:space="preserve">
+        <source>Sickness of a relative</source>
+        <target state="translated">Sickness of a relative</target>
       </trans-unit>
       <trans-unit id="2SmKENG" resname="other">
         <source>other</source>
         <target>Other</target>
-      </trans-unit>
-      <trans-unit id="csAXaBa" resname="button.request">
-        <source>button.request</source>
-        <target>Submit</target>
       </trans-unit>
       <trans-unit id="Od3xvQK" resname="button.report">
         <source>button.report</source>
@@ -1640,9 +1630,9 @@
         <source>sickness.intro</source>
         <target>Illness, doctor's visit, care of close relatives, etc.</target>
       </trans-unit>
-      <trans-unit id="yJg6P3m" resname="holiday.intro">
-        <source>holiday.intro</source>
-        <target>You have taken %used% of your available %days% vacation days so far.</target>
+      <trans-unit id="yJg6P3m" resname="holiday.intro" xml:space="preserve">
+        <source>You have submitted %used% of your available %days% vacation days so far.</source>
+        <target state="translated">You have submitted %used% of your available %days% vacation days so far.</target>
       </trans-unit>
       <trans-unit id="DA1.Ln_" resname="time_off.intro">
         <source>time_off.intro</source>
@@ -1756,6 +1746,10 @@
         <source>absence_comment_mandatory</source>
         <target>Absence: Comment is a mandatory field</target>
       </trans-unit>
+      <trans-unit id="M_WE1pa" resname="booking_allow_only_work_days">
+        <source>booking_allow_only_work_days</source>
+        <target>Allow time entries only for days for which expected hours are defined in the employment contract</target>
+      </trans-unit>
       <trans-unit id="q4ooRfF" resname="expires">
         <source>Expiry date</source>
         <target>Expiry date</target>
@@ -1771,6 +1765,182 @@
       <trans-unit id="TCr2ArH" resname="api_password_deprecated">
         <source>api_password_deprecated</source>
         <target>API passwords are outdated: please use API tokens instead.</target>
+      </trans-unit>
+      <trans-unit id="2qbRs28" resname="hours_per_day">
+        <source>hours_per_day</source>
+        <target>Hours per day</target>
+      </trans-unit>
+      <trans-unit id="y7KtuSS" resname="hours_per_week">
+        <source>hours_per_week</source>
+        <target>Hours per week</target>
+      </trans-unit>
+      <trans-unit id="07e8ywS" resname="hours_per_month">
+        <source>hours_per_month</source>
+        <target>Hours per month</target>
+      </trans-unit>
+      <trans-unit id="7p_pFHl" resname="work_days">
+        <source>work_days</source>
+        <target>Working days</target>
+      </trans-unit>
+      <trans-unit id="2pbkbn_" resname="work_hours_mode">
+        <source>work_hours_mode</source>
+        <target>Working time calculation</target>
+      </trans-unit>
+      <trans-unit id="IFT9pou" resname="last_working_day">
+        <source>last_working_day</source>
+        <target>Last working day</target>
+      </trans-unit>
+      <trans-unit id="0jvo0RQ" resname="profit">
+        <source>profit</source>
+        <target>Profit</target>
+      </trans-unit>
+      <trans-unit id="vN5pKOU" resname="costs">
+        <source>costs</source>
+        <target>Costs</target>
+      </trans-unit>
+      <trans-unit id="FOvlalA" resname="break">
+        <source>break</source>
+        <target>Break</target>
+      </trans-unit>
+      <trans-unit id="bEXLcqN" resname="stop">
+        <source>stop</source>
+        <target>Stop</target>
+      </trans-unit>
+      <trans-unit id="QCf1FUG" resname="reload">
+        <source>reload</source>
+        <target>Reload</target>
+      </trans-unit>
+      <trans-unit id="PEgjRvN" resname="back">
+        <source>back</source>
+        <target>Back</target>
+      </trans-unit>
+      <trans-unit id="JiEhxTc" resname="edit">
+        <source>Edit</source>
+        <target state="translated">Edit</target>
+      </trans-unit>
+      <trans-unit id="4G2jBDS" resname="trash">
+        <source>trash</source>
+        <target>Delete</target>
+      </trans-unit>
+      <trans-unit id="hF6RgxM" resname="report">
+        <source>report</source>
+        <target>Report</target>
+      </trans-unit>
+      <trans-unit id="JeK2sQZ" resname="repeat">
+        <source>repeat</source>
+        <target>Start again</target>
+      </trans-unit>
+      <trans-unit id="J0sRBY_" resname="profile-stats">
+        <source>profile-stats</source>
+        <target>Profile</target>
+      </trans-unit>
+      <trans-unit id="zeD7Dew" resname="settings">
+        <source>settings</source>
+        <target>Preferences</target>
+      </trans-unit>
+      <trans-unit id="anCjtwe" resname="timesheet.filter">
+        <source>Filter timesheets</source>
+        <target>Filter timesheets</target>
+      </trans-unit>
+      <trans-unit id="xY9_cU2" resname="customer.filter">
+        <source>Filter customers</source>
+        <target>Filter customers</target>
+      </trans-unit>
+      <trans-unit id="UFgOnc6" resname="project.filter">
+        <source>Filter projects</source>
+        <target>Filter projects</target>
+      </trans-unit>
+      <trans-unit id="5G3QNHA" resname="activity.filter">
+        <source>Filter activities</source>
+        <target>Filter activities</target>
+      </trans-unit>
+      <trans-unit id="b1pgNOd" resname="copy">
+        <source>copy</source>
+        <target>Create copy</target>
+      </trans-unit>
+      <trans-unit id="TqFAWIF" resname="home">
+        <source>home</source>
+        <target>Homepage</target>
+      </trans-unit>
+      <trans-unit id="PBlIO2x" resname="create-project">
+        <source>create-project</source>
+        <target>Create project</target>
+      </trans-unit>
+      <trans-unit id="UbouFOs" resname="create-activity">
+        <source>create-activity</source>
+        <target>Create activity</target>
+      </trans-unit>
+      <trans-unit id="QR1nvcR" resname="create-timesheet">
+        <source>create-timesheet</source>
+        <target>Create timesheet</target>
+      </trans-unit>
+      <trans-unit id="Qh5mV5Q" resname="create-timesheet-multiuser">
+        <source>create-timesheet-multiuser</source>
+        <target>For multiple users</target>
+      </trans-unit>
+      <trans-unit id="T_PN1AT" resname="permissions">
+        <source>permissions</source>
+        <target>Permissions</target>
+      </trans-unit>
+      <trans-unit id="Qf.Yt2r" resname="details">
+        <source>details</source>
+        <target>Show</target>
+      </trans-unit>
+      <trans-unit id="aP9j_4L" resname="download">
+        <source>download</source>
+        <target>Download</target>
+      </trans-unit>
+      <trans-unit id="hHIeqOW" resname="invoice.pending">
+        <source>invoice.pending</source>
+        <target>Waiting for payment</target>
+      </trans-unit>
+      <trans-unit id="9M4b2ZN" resname="invoice.paid">
+        <source>invoice.paid</source>
+        <target>Invoice paid</target>
+      </trans-unit>
+      <trans-unit id="SEyZupT" resname="invoice.cancel">
+        <source>invoice.cancel</source>
+        <target>Cancel invoice</target>
+      </trans-unit>
+      <trans-unit id="38M3a4J" resname="filter">
+        <source>filter</source>
+        <target>Filter data</target>
+      </trans-unit>
+      <trans-unit id="pJzNT.n" resname="vcard">
+        <source>vcard</source>
+        <target>Business card</target>
+      </trans-unit>
+      <trans-unit id="2cMESs." resname="widget_add">
+        <source>Add widget</source>
+        <target>Add widget</target>
+      </trans-unit>
+      <trans-unit id="YCc5UoO" resname="widget_remove">
+        <source>Remove widget</source>
+        <target>Remove widget</target>
+      </trans-unit>
+      <trans-unit id="5vJvarK" resname="syncronisation">
+        <source>Synchronization</source>
+        <target state="translated">Synchronization</target>
+      </trans-unit>
+      <trans-unit id="2UL2SIZ" resname="import">
+        <source>import</source>
+        <target>Import</target>
+      </trans-unit>
+      <trans-unit id="EiWubBr" resname="sessions">
+        <source>Sessions</source>
+        <target>Sessions</target>
+      </trans-unit>
+      <trans-unit id="f0kKHXR" resname="sessions_logout">
+        <source>Log out of all devices</source>
+        <target>Log out of all devices</target>
+      </trans-unit>
+      <trans-unit id="9qIU96X" resname="result">
+        <source>result</source>
+        <target>Result</target>
+      </trans-unit>
+      <trans-unit id="wvt4jH3" resname="training">
+        <source>training</source>
+        <target>Training</target>
       </trans-unit>
     </body>
   </file>

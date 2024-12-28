@@ -17,7 +17,11 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final class UserSubscriber extends AbstractActionsSubscriber
 {
-    public function __construct(AuthorizationCheckerInterface $auth, UrlGeneratorInterface $urlGenerator, private EventDispatcherInterface $eventDispatcher)
+    public function __construct(
+        AuthorizationCheckerInterface $auth,
+        UrlGeneratorInterface $urlGenerator,
+        private readonly EventDispatcherInterface $eventDispatcher
+    )
     {
         parent::__construct($auth, $urlGenerator);
     }
@@ -36,7 +40,7 @@ final class UserSubscriber extends AbstractActionsSubscriber
         }
 
         if ($this->isGranted('view', $user)) {
-            $event->addAction('profile-stats', ['icon' => 'avatar', 'url' => $this->path('user_profile', ['username' => $user->getUserIdentifier()]), 'translation_domain' => 'actions', 'title' => 'profile-stats']);
+            $event->addAction('profile-stats', ['icon' => 'avatar', 'url' => $this->path('user_profile', ['username' => $user->getUserIdentifier()]), 'title' => 'profile-stats']);
             $event->addDivider();
         }
 
@@ -47,6 +51,10 @@ final class UserSubscriber extends AbstractActionsSubscriber
             $event->addActionToSubmenu('edit', $id, $action);
         }
 
+        if ($this->isGranted('hours', $user)) {
+            $event->addActionToSubmenu('report', 'work_times', ['url' => $this->path('user_contract', ['user' => $user->getId()]), 'title' => 'work_times']);
+        }
+
         if (($event->getUser()->getId() === $user->getId() && $this->isGranted('report:user')) || $this->isGranted('report:other')) {
             $event->addActionToSubmenu('report', 'weekly', ['url' => $this->path('report_user_week', ['user' => $user->getId()]), 'translation_domain' => 'reporting', 'title' => 'report_user_week']);
             $event->addActionToSubmenu('report', 'monthly', ['url' => $this->path('report_user_month', ['user' => $user->getId()]), 'translation_domain' => 'reporting', 'title' => 'report_user_month']);
@@ -54,7 +62,7 @@ final class UserSubscriber extends AbstractActionsSubscriber
         }
 
         if ($user->isEnabled() && $this->isGranted('view_other_timesheet')) {
-            $event->addActionToSubmenu('filter', 'timesheet', ['url' => $this->path('admin_timesheet', ['users[]' => $user->getId()]), 'title' => 'timesheet.filter', 'translation_domain' => 'actions']);
+            $event->addActionToSubmenu('filter', 'timesheet', ['url' => $this->path('admin_timesheet', ['users[]' => $user->getId()]), 'title' => 'timesheet.filter']);
         }
 
         if ($this->isGranted('view_team')) {

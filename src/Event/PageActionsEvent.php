@@ -16,14 +16,17 @@ use App\Entity\User;
  * - once per side load for page actions
  * - once for every entity item (table row)
  *
- * @property array{'actions': array, 'view': string} $payload
+ * @property array{actions: array<string, string|array<mixed>>, view: string} $payload
  */
 class PageActionsEvent extends ThemeEvent
 {
     private int $divider = 0;
     private ?string $locale = null;
 
-    public function __construct(User $user, array $payload, private string $action, private string $view)
+    /**
+     * @param array<mixed> $payload
+     */
+    public function __construct(User $user, array $payload, private readonly string $action, private readonly string $view)
     {
         // only for BC reasons, do not access it directly!
         if (!\array_key_exists('actions', $payload)) {
@@ -58,8 +61,6 @@ class PageActionsEvent extends ThemeEvent
 
     /**
      * Custom view can only be table listings.
-     *
-     * @return bool
      */
     public function isCustomView(): bool
     {
@@ -71,6 +72,9 @@ class PageActionsEvent extends ThemeEvent
         return $this->view;
     }
 
+    /**
+     * @return array<string, array<mixed>>
+     */
     public function getActions(): array
     {
         $actions = $this->payload['actions'];
@@ -99,28 +103,38 @@ class PageActionsEvent extends ThemeEvent
 
     public function hasSubmenu(string $submenu): bool
     {
-        if (!$this->hasAction($submenu)) {
+        if (!\array_key_exists($submenu, $this->payload['actions'])) {
             return false;
         }
 
         return \array_key_exists('children', $this->payload['actions'][$submenu]);
     }
 
+    /**
+     * @param array<string, mixed> $action
+     */
     public function addActionToSubmenu(string $submenu, string $key, array $action): void
     {
-        if ($this->hasAction($submenu)) {
-            if (!\array_key_exists('children', $this->payload['actions'][$submenu])) {
-                $this->payload['actions'][$submenu]['children'] = [];
-            }
+        if (!\array_key_exists($submenu, $this->payload['actions'])) {
+            $this->payload['actions'][$submenu] = ['children' => []];
+        }
+        if (!\array_key_exists('children', $this->payload['actions'][$submenu])) {
+            $this->payload['actions'][$submenu]['children'] = [];
         }
         $this->payload['actions'][$submenu]['children'][$key] = $action;
     }
 
+    /**
+     * @param array<string, mixed> $action
+     */
     public function replaceAction(string $key, array $action): void
     {
         $this->payload['actions'][$key] = $action;
     }
 
+    /**
+     * @param array<string, mixed> $action
+     */
     public function addAction(string $key, array $action): void
     {
         if (!$this->hasAction($key)) {
@@ -141,6 +155,11 @@ class PageActionsEvent extends ThemeEvent
         $this->payload['actions'][$key] = null;
     }
 
+    public function addQuickImport(string $url): void
+    {
+        $this->addAction('import', ['url' => $url, 'class' => 'toolbar-action', 'title' => 'import', 'icon' => 'upload']);
+    }
+
     public function addQuickExport(string $url): void
     {
         $this->addAction('download', ['url' => $url, 'class' => 'toolbar-action', 'title' => 'export']);
@@ -153,7 +172,7 @@ class PageActionsEvent extends ThemeEvent
 
     public function addEdit(string $url, bool $modal = true, string $class = ''): void
     {
-        $this->addAction('edit', ['url' => $url, 'class' => ($modal ? 'modal-ajax-form' . ($class === '' ? '' : ' ' . $class) : $class), 'translation_domain' => 'actions', 'title' => 'edit']);
+        $this->addAction('edit', ['url' => $url, 'class' => ($modal ? 'modal-ajax-form' . ($class === '' ? '' : ' ' . $class) : $class), 'title' => 'edit']);
     }
 
     /**
@@ -161,20 +180,20 @@ class PageActionsEvent extends ThemeEvent
      */
     public function addSettings(string $url): void
     {
-        $this->addAction('settings', ['url' => $url, 'class' => 'modal-ajax-form', 'title' => 'settings', 'translation_domain' => 'actions', 'accesskey' => 'h']);
+        $this->addAction('settings', ['url' => $url, 'class' => 'modal-ajax-form', 'title' => 'settings', 'accesskey' => 'h']);
     }
 
     public function addConfig(string $url): void
     {
-        $this->addAction('settings', ['url' => $url, 'title' => 'settings', 'translation_domain' => 'actions']);
+        $this->addAction('settings', ['url' => $url, 'title' => 'settings']);
     }
 
     public function addDelete(string $url, bool $remoteConfirm = true): void
     {
         if ($remoteConfirm) {
-            $this->addAction('trash', ['url' => $url, 'class' => 'modal-ajax-form text-red', 'translation_domain' => 'actions', 'title' => 'trash']);
+            $this->addAction('trash', ['url' => $url, 'class' => 'modal-ajax-form text-red', 'title' => 'trash']);
         } else {
-            $this->addAction('trash', ['url' => $url, 'class' => 'confirmation-link text-red', 'attr' => ['data-question' => 'confirm.delete'], 'translation_domain' => 'actions', 'title' => 'trash']);
+            $this->addAction('trash', ['url' => $url, 'class' => 'confirmation-link text-red', 'attr' => ['data-question' => 'confirm.delete'], 'title' => 'trash']);
         }
     }
 

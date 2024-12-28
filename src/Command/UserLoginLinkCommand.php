@@ -21,10 +21,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
 
-#[AsCommand(name: 'kimai:user:login-link', description: 'Create a URL that can be used to login as that user', hidden: true)]
 /**
  * @CloudRequired
  */
+#[AsCommand(name: 'kimai:user:login-link', description: 'Create a URL that can be used to login as that user', hidden: true)]
 final class UserLoginLinkCommand extends Command
 {
     public function __construct(
@@ -36,6 +36,7 @@ final class UserLoginLinkCommand extends Command
         parent::__construct();
         $this->addArgument('email', InputArgument::REQUIRED, 'The email of the user');
         $this->addOption('password-reset', null, InputOption::VALUE_NONE, 'Whether the user needs to reset the password afterwards');
+        $this->addOption('all-auth', null, InputOption::VALUE_NONE, 'Ignore that the user is using an external authentication system');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -63,7 +64,7 @@ final class UserLoginLinkCommand extends Command
             return Command::FAILURE;
         }
 
-        if (!$user->isInternalUser()) {
+        if (!$user->isInternalUser() && !$input->getOption('all-auth')) {
             $io->error('User does not use internal login');
 
             return Command::FAILURE;

@@ -21,11 +21,14 @@ use App\Repository\ActivityRateRepository;
 use App\Repository\ActivityRepository;
 use App\Repository\Query\VisibilityInterface;
 use App\Tests\Mocks\ActivityTestMetaFieldSubscriberMock;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @group integration
  */
-class ActivityControllerTest extends APIControllerBaseTest
+class ActivityControllerTest extends APIControllerBaseTestCase
 {
     use RateControllerTestTrait;
 
@@ -46,10 +49,10 @@ class ActivityControllerTest extends APIControllerBaseTest
     protected function getRateUrl($id = '1', $rateId = null): string
     {
         if (null !== $rateId) {
-            return sprintf('/api/activities/%s/rates/%s', $id, $rateId);
+            return \sprintf('/api/activities/%s/rates/%s', $id, $rateId);
         }
 
-        return sprintf('/api/activities/%s/rates', $id);
+        return \sprintf('/api/activities/%s/rates', $id);
     }
 
     protected function importTestRates($id): array
@@ -170,18 +173,19 @@ class ActivityControllerTest extends APIControllerBaseTest
         $this->assertAccessIsGranted($client, $url, 'GET', $parameters);
 
         $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
+        self::assertIsString($content);
         $result = json_decode($content, true);
 
-        $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
-        $this->assertEquals(\count($expected), \count($result));
+        self::assertIsArray($result);
+        self::assertNotEmpty($result);
+        self::assertEquals(\count($expected), \count($result));
         for ($i = 0; $i < \count($result); $i++) {
             $activity = $result[$i];
             $hasProject = $expected[$i][0];
+            self::assertIsArray($activity);
             self::assertApiResponseTypeStructure('ActivityCollection', $activity);
             if ($hasProject && $projectId !== null) {
-                $this->assertEquals($projectId, $activity['project']);
+                self::assertEquals($projectId, $activity['project']);
             }
         }
     }
@@ -189,7 +193,7 @@ class ActivityControllerTest extends APIControllerBaseTest
     /**
      * @return \Generator<array<mixed>>
      */
-    public function getCollectionTestData(): iterable
+    public static function getCollectionTestData(): iterable
     {
         yield ['/api/activities', null, [], [[false], [true, 2], [true, 2], [null], [true, 1]]];
         //yield ['/api/activities', [], [[false], [false], [true, 2], [true, 1], [true, 2]]];
@@ -213,16 +217,17 @@ class ActivityControllerTest extends APIControllerBaseTest
         $this->assertAccessIsGranted($client, '/api/activities', 'GET', $query);
 
         $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
+        self::assertIsString($content);
         $result = json_decode($content, true);
 
-        $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
-        $this->assertEquals(5, \count($result));
+        self::assertIsArray($result);
+        self::assertNotEmpty($result);
+        self::assertEquals(5, \count($result));
+        self::assertIsArray($result[0]);
         self::assertApiResponseTypeStructure('ActivityCollection', $result[0]);
-        $this->assertEquals($imports[0]->getId(), $result[4]['project']);
-        $this->assertEquals($imports[1]->getId(), $result[3]['project']);
-        $this->assertEquals($imports[1]->getId(), $result[2]['project']);
+        self::assertEquals($imports[0]->getId(), $result[4]['project']);
+        self::assertEquals($imports[1]->getId(), $result[3]['project']);
+        self::assertEquals($imports[1]->getId(), $result[2]['project']);
     }
 
     public function testGetEntityIsSecure(): void
@@ -236,16 +241,16 @@ class ActivityControllerTest extends APIControllerBaseTest
         $this->assertAccessIsGranted($client, '/api/activities/1');
 
         $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
+        self::assertIsString($content);
         $result = json_decode($content, true);
 
-        $this->assertIsArray($result);
+        self::assertIsArray($result);
         self::assertApiResponseTypeStructure('ActivityEntity', $result);
     }
 
     public function testNotFound(): void
     {
-        $this->assertEntityNotFound(User::ROLE_USER, '/api/activities/' . PHP_INT_MAX, 'GET', 'App\\Entity\\Activity object not found by the @ParamConverter annotation.');
+        $this->assertEntityNotFound(User::ROLE_USER, '/api/activities/' . PHP_INT_MAX);
     }
 
     public function testPostAction(): void
@@ -259,15 +264,15 @@ class ActivityControllerTest extends APIControllerBaseTest
             'timeBudget' => '7200',
         ];
         $this->request($client, '/api/activities', 'POST', [], json_encode($data));
-        $this->assertTrue($client->getResponse()->isSuccessful());
+        self::assertTrue($client->getResponse()->isSuccessful());
 
         $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
+        self::assertIsString($content);
         $result = json_decode($content, true);
 
-        $this->assertIsArray($result);
+        self::assertIsArray($result);
         self::assertApiResponseTypeStructure('ActivityEntity', $result);
-        $this->assertNotEmpty($result['id']);
+        self::assertNotEmpty($result['id']);
     }
 
     public function testPostActionWithLeastFields(): void
@@ -277,15 +282,15 @@ class ActivityControllerTest extends APIControllerBaseTest
             'name' => 'foo',
         ];
         $this->request($client, '/api/activities', 'POST', [], json_encode($data));
-        $this->assertTrue($client->getResponse()->isSuccessful());
+        self::assertTrue($client->getResponse()->isSuccessful());
 
         $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
+        self::assertIsString($content);
         $result = json_decode($content, true);
 
-        $this->assertIsArray($result);
+        self::assertIsArray($result);
         self::assertApiResponseTypeStructure('ActivityEntity', $result);
-        $this->assertNotEmpty($result['id']);
+        self::assertNotEmpty($result['id']);
     }
 
     public function testPostActionWithInvalidUser(): void
@@ -326,15 +331,15 @@ class ActivityControllerTest extends APIControllerBaseTest
             'timeBudget' => '7200',
         ];
         $this->request($client, '/api/activities/1', 'PATCH', [], json_encode($data));
-        $this->assertTrue($client->getResponse()->isSuccessful());
+        self::assertTrue($client->getResponse()->isSuccessful());
 
         $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
+        self::assertIsString($content);
         $result = json_decode($content, true);
 
-        $this->assertIsArray($result);
+        self::assertIsArray($result);
         self::assertApiResponseTypeStructure('ActivityEntity', $result);
-        $this->assertNotEmpty($result['id']);
+        self::assertNotEmpty($result['id']);
     }
 
     public function testPatchActionWithNonGlobalActivity(): void
@@ -351,16 +356,16 @@ class ActivityControllerTest extends APIControllerBaseTest
             'timeBudget' => '7200',
         ];
         $this->request($client, '/api/activities/' . $imports[2]->getId(), 'PATCH', [], json_encode($data));
-        $this->assertTrue($client->getResponse()->isSuccessful());
+        self::assertTrue($client->getResponse()->isSuccessful());
 
         $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
+        self::assertIsString($content);
         $result = json_decode($content, true);
 
-        $this->assertIsArray($result);
+        self::assertIsArray($result);
         self::assertApiResponseTypeStructure('ActivityEntity', $result);
-        $this->assertNotEmpty($result['id']);
-        $this->assertEquals($imports[1]->getId(), $result['project']);
+        self::assertNotEmpty($result['id']);
+        self::assertEquals($imports[1]->getId(), $result['project']);
     }
 
     public function testPatchActionWithInvalidUser(): void
@@ -393,7 +398,7 @@ class ActivityControllerTest extends APIControllerBaseTest
         $this->request($client, '/api/activities/1', 'PATCH', [], json_encode($data));
 
         $response = $client->getResponse();
-        $this->assertEquals(400, $response->getStatusCode());
+        self::assertEquals(400, $response->getStatusCode());
         $this->assertApiCallValidationError($response, ['name']);
     }
 
@@ -429,7 +434,9 @@ class ActivityControllerTest extends APIControllerBaseTest
     public function testMetaAction(): void
     {
         $client = $this->getClientForAuthenticatedUser(User::ROLE_ADMIN);
-        static::getContainer()->get('event_dispatcher')->addSubscriber(new ActivityTestMetaFieldSubscriberMock());
+        /** @var EventDispatcher $dispatcher */
+        $dispatcher = static::getContainer()->get('event_dispatcher');
+        $dispatcher->addSubscriber(new ActivityTestMetaFieldSubscriberMock());
 
         $data = [
             'name' => 'metatestmock',
@@ -437,11 +444,69 @@ class ActivityControllerTest extends APIControllerBaseTest
         ];
         $this->request($client, '/api/activities/1/meta', 'PATCH', [], json_encode($data));
 
-        $this->assertTrue($client->getResponse()->isSuccessful());
+        self::assertTrue($client->getResponse()->isSuccessful());
 
         $em = $this->getEntityManager();
         /** @var Activity $activity */
         $activity = $em->getRepository(Activity::class)->find(1);
-        $this->assertEquals('another,testing,bar', $activity->getMetaField('metatestmock')->getValue());
+        self::assertEquals('another,testing,bar', $activity->getMetaField('metatestmock')->getValue());
+    }
+
+    // ------------------------------- [DELETE] -------------------------------
+
+    public function testDeleteIsSecure(): void
+    {
+        $this->assertUrlIsSecured('/api/activities/1', Request::METHOD_DELETE);
+    }
+
+    public function testDeleteActionWithUnknownTimesheet(): void
+    {
+        $client = $this->getClientForAuthenticatedUser(User::ROLE_ADMIN);
+        $this->assertNotFoundForDelete($client, '/api/activities/' . PHP_INT_MAX);
+    }
+
+    public function testDeleteEntityIsSecure(): void
+    {
+        $this->assertUrlIsSecuredForRole(User::ROLE_USER, '/api/activities/1', Request::METHOD_DELETE);
+    }
+
+    public function testDeleteActionWithoutAuthorization(): void
+    {
+        $client = $this->getClientForAuthenticatedUser(User::ROLE_TEAMLEAD);
+        $imports = $this->loadActivityTestData();
+
+        $this->request($client, '/api/activities/' . $imports[2]->getId(), Request::METHOD_DELETE);
+
+        $response = $client->getResponse();
+        $this->assertApiResponseAccessDenied($response);
+    }
+
+    public function testDeleteAction(): void
+    {
+        $client = $this->getClientForAuthenticatedUser(User::ROLE_ADMIN);
+        $imports = $this->loadActivityTestData();
+        $getUrl = '/api/activities/' . $imports[2]->getId();
+        $this->assertAccessIsGranted($client, $getUrl);
+
+        $content = $client->getResponse()->getContent();
+        self::assertIsString($content);
+        $result = json_decode($content, true);
+
+        self::assertIsArray($result);
+        self::assertApiResponseTypeStructure('ActivityEntity', $result);
+        self::assertNotEmpty($result['id']);
+        self::assertIsNumeric($result['id']);
+        $id = $result['id'];
+
+        $this->request($client, '/api/activities/' . $id, Request::METHOD_DELETE);
+        self::assertTrue($client->getResponse()->isSuccessful());
+        self::assertEquals(Response::HTTP_NO_CONTENT, $client->getResponse()->getStatusCode());
+        self::assertEmpty($client->getResponse()->getContent());
+
+        $this->request($client, $getUrl);
+        $this->assertApiException($client->getResponse(), [
+            'code' => Response::HTTP_NOT_FOUND,
+            'message' => 'Not Found'
+        ]);
     }
 }

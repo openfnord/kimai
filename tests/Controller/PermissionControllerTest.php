@@ -17,7 +17,7 @@ use App\Entity\User;
 /**
  * @group integration
  */
-class PermissionControllerTest extends ControllerBaseTest
+class PermissionControllerTest extends AbstractControllerBaseTestCase
 {
     public function testIsSecure(): void
     {
@@ -34,7 +34,7 @@ class PermissionControllerTest extends ControllerBaseTest
         $client = $this->getClientForAuthenticatedUser(User::ROLE_SUPER_ADMIN);
         $this->assertAccessIsGranted($client, '/admin/permissions');
         $this->assertHasDataTable($client);
-        $this->assertDataTableRowCount($client, 'datatable_user_admin_permissions', 133);
+        $this->assertDataTableRowCount($client, 'datatable_user_admin_permissions', 135);
         $this->assertPageActions($client, [
             'create modal-ajax-form' => $this->createUrl('/admin/permissions/roles/create'),
         ]);
@@ -81,7 +81,16 @@ class PermissionControllerTest extends ControllerBaseTest
 
     public function testDeleteRoleIsSecured(): void
     {
-        $this->assertUrlIsSecured('/admin/permissions/roles/1/delete/sdfsdfsdfsd');
+        $client = self::createClient();
+
+        $role = new Role();
+        $role->setName('TEST_ROLE');
+
+        $em = $this->getEntityManager();
+        $em->persist($role);
+        $em->flush();
+
+        $this->assertRequestIsSecured($client, '/admin/permissions/roles/' . $role->getId() . '/delete/sdfsdfsdfsd');
     }
 
     public function testDeleteRoleIsSecuredForRole(): void
@@ -126,10 +135,10 @@ class PermissionControllerTest extends ControllerBaseTest
         ]);
         $this->assertIsRedirect($client, $this->createUrl('/profile/' . urlencode(UserFixtures::USERNAME_USER) . '/roles'));
         $client->followRedirect();
-        $this->assertTrue($client->getResponse()->isSuccessful());
+        self::assertTrue($client->getResponse()->isSuccessful());
 
         $user = $this->getUserByName(UserFixtures::USERNAME_USER);
-        $this->assertEquals(['ROLE_TEAMLEAD', 'ROLE_SUPER_ADMIN', 'TEST_ROLE', 'ROLE_USER'], $user->getRoles());
+        self::assertEquals(['ROLE_TEAMLEAD', 'ROLE_SUPER_ADMIN', 'TEST_ROLE', 'ROLE_USER'], $user->getRoles());
 
         $this->request($client, '/admin/permissions');
         $node = $client->getCrawler()->filter('div.card .card-title a.confirmation-link');
@@ -145,12 +154,21 @@ class PermissionControllerTest extends ControllerBaseTest
 
         // verify that role was removed from user
         $user = $this->getUserByName(UserFixtures::USERNAME_USER);
-        $this->assertEquals(['ROLE_TEAMLEAD', 'ROLE_SUPER_ADMIN', 'ROLE_USER'], $user->getRoles());
+        self::assertEquals(['ROLE_TEAMLEAD', 'ROLE_SUPER_ADMIN', 'ROLE_USER'], $user->getRoles());
     }
 
     public function testSavePermissionIsSecured(): void
     {
-        $this->assertUrlIsSecured('/admin/permissions/roles/1/view_user/1/asdfasdf', 'POST');
+        $client = self::createClient();
+
+        $role = new Role();
+        $role->setName('TEST_ROLE');
+
+        $em = $this->getEntityManager();
+        $em->persist($role);
+        $em->flush();
+
+        $this->assertRequestIsSecured($client, '/admin/permissions/roles/' . $role->getId() . '/view_user/1/asdfasdf', 'POST');
     }
 
     public function testSavePermissionIsSecuredForRole(): void
@@ -173,7 +191,7 @@ class PermissionControllerTest extends ControllerBaseTest
 
         $em = $this->getEntityManager();
         $rolePermissions = $em->getRepository(RolePermission::class)->findAll();
-        $this->assertEquals(0, \count($rolePermissions));
+        self::assertEquals(0, \count($rolePermissions));
 
         $roles = $em->getRepository(Role::class)->findAll();
         $id = null;
@@ -194,7 +212,7 @@ class PermissionControllerTest extends ControllerBaseTest
         self::assertArrayHasKey('token', $result);
 
         $rolePermissions = $em->getRepository(RolePermission::class)->findAll();
-        $this->assertCount(1, $rolePermissions);
+        self::assertCount(1, $rolePermissions);
         $permission = $rolePermissions[0];
         self::assertInstanceOf(RolePermission::class, $permission);
         self::assertEquals('view_user', $permission->getPermission());
@@ -214,7 +232,7 @@ class PermissionControllerTest extends ControllerBaseTest
         self::assertArrayHasKey('token', $result);
 
         $rolePermissions = $em->getRepository(RolePermission::class)->findAll();
-        $this->assertEquals(1, \count($rolePermissions));
+        self::assertEquals(1, \count($rolePermissions));
         $permission = $rolePermissions[0];
         self::assertInstanceOf(RolePermission::class, $permission);
         self::assertEquals('view_user', $permission->getPermission());

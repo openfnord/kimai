@@ -9,20 +9,19 @@
 
 namespace App\Project;
 
-use App\Entity\ActivityRate;
 use App\Entity\Project;
-use App\Entity\ProjectRate;
 use App\Repository\ActivityRateRepository;
 use App\Repository\ActivityRepository;
 use App\Repository\ProjectRateRepository;
+use App\Repository\Query\ActivityQuery;
 
 final class ProjectDuplicationService
 {
     public function __construct(
-        private ProjectService $projectService,
-        private ActivityRepository $activityRepository,
-        private ProjectRateRepository $projectRateRepository,
-        private ActivityRateRepository $activityRateRepository
+        private readonly ProjectService $projectService,
+        private readonly ActivityRepository $activityRepository,
+        private readonly ProjectRateRepository $projectRateRepository,
+        private readonly ActivityRateRepository $activityRateRepository
     ) {
     }
 
@@ -30,6 +29,7 @@ final class ProjectDuplicationService
     {
         $newProject = clone $project;
         $newProject->setName($newName);
+        $newProject->setNumber($this->projectService->calculateNextProjectNumber());
 
         foreach ($project->getTeams() as $team) {
             $newProject->addTeam($team);
@@ -49,13 +49,16 @@ final class ProjectDuplicationService
         $this->projectService->saveNewProject($newProject);
 
         foreach ($this->projectRateRepository->getRatesForProject($project) as $rate) {
-            /** @var ProjectRate $newRate */
             $newRate = clone $rate;
             $newRate->setProject($newProject);
             $this->projectRateRepository->saveRate($newRate);
         }
 
-        $allActivities = $this->activityRepository->findByProject($project);
+        $query = new ActivityQuery();
+        $query->addProject($project);
+        $query->setExcludeGlobals(true);
+
+        $allActivities = $this->activityRepository->getActivitiesForQuery($query);
         foreach ($allActivities as $activity) {
             $newActivity = clone $activity;
             $newActivity->setProject($newProject);
@@ -68,7 +71,6 @@ final class ProjectDuplicationService
             $this->activityRepository->saveActivity($newActivity);
 
             foreach ($this->activityRateRepository->getRatesForActivity($activity) as $rate) {
-                /** @var ActivityRate $newRate */
                 $newRate = clone $rate;
                 $newRate->setActivity($newActivity);
                 $this->activityRateRepository->saveRate($newRate);

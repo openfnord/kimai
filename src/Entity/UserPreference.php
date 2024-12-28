@@ -10,6 +10,7 @@
 namespace App\Entity;
 
 use App\Form\Type\YesNoType;
+use App\WorkingTime\Calculator\WorkingTimeCalculatorDay;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -32,16 +33,23 @@ class UserPreference
     public const LOCALE = 'locale';
     public const TIMEZONE = 'timezone';
     public const FIRST_WEEKDAY = 'first_weekday';
-    public const WORK_HOURS_MONDAY = 'work_monday';
-    public const WORK_HOURS_TUESDAY = 'work_tuesday';
-    public const WORK_HOURS_WEDNESDAY = 'work_wednesday';
-    public const WORK_HOURS_THURSDAY = 'work_thursday';
-    public const WORK_HOURS_FRIDAY = 'work_friday';
-    public const WORK_HOURS_SATURDAY = 'work_saturday';
-    public const WORK_HOURS_SUNDAY = 'work_sunday';
-    public const WORK_STARTING_DAY = 'work_start_day';
+    /** @deprecated since 2.22*/
+    public const WORK_HOURS_MONDAY = WorkingTimeCalculatorDay::WORK_HOURS_MONDAY;
+    /** @deprecated since 2.22*/
+    public const WORK_HOURS_TUESDAY = WorkingTimeCalculatorDay::WORK_HOURS_TUESDAY;
+    /** @deprecated since 2.22*/
+    public const WORK_HOURS_WEDNESDAY = WorkingTimeCalculatorDay::WORK_HOURS_WEDNESDAY;
+    /** @deprecated since 2.22*/
+    public const WORK_HOURS_THURSDAY = WorkingTimeCalculatorDay::WORK_HOURS_THURSDAY;
+    /** @deprecated since 2.22*/
+    public const WORK_HOURS_FRIDAY = WorkingTimeCalculatorDay::WORK_HOURS_FRIDAY;
+    /** @deprecated since 2.22*/
+    public const WORK_HOURS_SATURDAY = WorkingTimeCalculatorDay::WORK_HOURS_SATURDAY;
+    /** @deprecated since 2.22*/
+    public const WORK_HOURS_SUNDAY = WorkingTimeCalculatorDay::WORK_HOURS_SUNDAY;
     public const PUBLIC_HOLIDAY_GROUP = 'public_holiday_group';
     public const HOLIDAYS_PER_YEAR = 'holidays';
+    public const WORK_CONTRACT_TYPE = 'work_contract_type';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -142,11 +150,26 @@ class UserPreference
      * integer, float, string, boolean or null
      *
      * @param mixed $value
-     * @return UserPreference
      */
     public function setValue($value): UserPreference
     {
-        $this->value = $value;
+        // unchecked checkboxes / false bool would save an empty string in the database
+        // those cannot be searched in the database
+        switch ($this->type) {
+            case YesNoType::class:
+            case CheckboxType::class:
+                if ($value === false || $value === '' || !\is_scalar($value)) {
+                    $value = 0;
+                } else {
+                    $value = 1;
+                }
+        }
+
+        if ($value === null) {
+            $this->value = $value;
+        } elseif (\is_scalar($value)) {
+            $this->value = (string) $value;
+        }
 
         return $this;
     }

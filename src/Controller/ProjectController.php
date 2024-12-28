@@ -58,7 +58,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route(path: '/admin/project')]
 final class ProjectController extends AbstractController
 {
-    public function __construct(private ProjectRepository $repository, private SystemConfiguration $configuration, private EventDispatcherInterface $dispatcher, private ProjectService $projectService)
+    public function __construct(
+        private readonly ProjectRepository $repository,
+        private readonly SystemConfiguration $configuration,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly ProjectService $projectService
+    )
     {
     }
 
@@ -68,6 +73,7 @@ final class ProjectController extends AbstractController
     public function indexAction(int $page, Request $request): Response
     {
         $query = new ProjectQuery();
+        $query->loadTeams();
         $query->setCurrentUser($this->getUser());
         $query->setPage($page);
 
@@ -213,13 +219,13 @@ final class ProjectController extends AbstractController
     {
         $projectId = $comment->getProject()->getId();
 
-        if (!$csrfTokenManager->isTokenValid(new CsrfToken('project.delete_comment', $token))) {
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('comment.delete', $token))) {
             $this->flashError('action.csrf.error');
 
             return $this->redirectToRoute('project_details', ['id' => $projectId]);
         }
 
-        $csrfTokenManager->refreshToken('project.delete_comment');
+        $csrfTokenManager->refreshToken('comment.delete');
 
         try {
             $this->repository->deleteComment($comment);
@@ -256,13 +262,13 @@ final class ProjectController extends AbstractController
     {
         $projectId = $comment->getProject()->getId();
 
-        if (!$csrfTokenManager->isTokenValid(new CsrfToken('project.pin_comment', $token))) {
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('comment.pin', $token))) {
             $this->flashError('action.csrf.error');
 
             return $this->redirectToRoute('project_details', ['id' => $projectId]);
         }
 
-        $csrfTokenManager->refreshToken('project.pin_comment');
+        $csrfTokenManager->refreshToken('comment.pin');
 
         $comment->setPinned(!$comment->isPinned());
         try {
@@ -480,11 +486,17 @@ final class ProjectController extends AbstractController
 
         $csrfTokenManager->refreshToken('project.duplicate');
 
-        $newProject = $projectDuplicationService->duplicate($project, $project->getName() . ' [COPY]');
+        try {
+            $newProject = $projectDuplicationService->duplicate($project, $project->getName() . ' [COPY]');
+            $this->flashSuccess('action.update.success');
 
-        $this->flashSuccess('action.update.success');
+            return $this->redirectToRoute('project_details', ['id' => $newProject->getId()]);
+        } catch (\Exception $ex) {
+            $this->logException($ex);
+            $this->flashError('action.update.error', 'Failed to copy project: ' . $ex->getMessage());
+        }
 
-        return $this->redirectToRoute('project_details', ['id' => $newProject->getId()]);
+        return $this->redirectToRoute('admin_project');
     }
 
     #[Route(path: '/{id}/delete', name: 'admin_project_delete', methods: ['GET', 'POST'])]

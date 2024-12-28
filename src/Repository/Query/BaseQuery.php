@@ -30,7 +30,7 @@ class BaseQuery
     /** @var array<string, string|int|null|bool|array<mixed>|DateRange> */
     private array $defaults = [
         'page' => 1,
-        'pageSize' => self::DEFAULT_PAGESIZE,
+        'size' => self::DEFAULT_PAGESIZE,
         'orderBy' => 'id',
         'order' => self::ORDER_ASC,
         'searchTerm' => null,
@@ -135,6 +135,16 @@ class BaseQuery
         }
 
         return $this;
+    }
+
+    public function getSize(): int
+    {
+        return $this->getPageSize();
+    }
+
+    public function setSize(?int $size): void
+    {
+        $this->setPageSize($size);
     }
 
     public function getOrderBy(): string
@@ -275,7 +285,7 @@ class BaseQuery
         return $this;
     }
 
-    public function setBookmark(Bookmark $bookmark): void
+    public function setBookmark(?Bookmark $bookmark): void
     {
         $this->bookmark = $bookmark;
     }
@@ -306,7 +316,13 @@ class BaseQuery
         return array_pop($shortClass);
     }
 
-    public function copyTo(BaseQuery $query): BaseQuery
+    /**
+     * @template T of BaseQuery
+     * @param T $query
+     * @return T
+     * @internal
+     */
+    final public function copyTo(BaseQuery $query): BaseQuery
     {
         $query->setDefaults($this->defaults);
         if (null !== $this->getCurrentUser()) {
@@ -326,7 +342,13 @@ class BaseQuery
             $query->setVisibility($this->getVisibility());
         }
 
+        $query->copyFrom($this);
+
         return $query;
+    }
+
+    protected function copyFrom(BaseQuery $query): void
+    {
     }
 
     public function isDefaultFilter(string $filter): bool

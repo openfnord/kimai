@@ -114,9 +114,9 @@
         <source>The chosen date is already locked.</source>
         <target state="translated">A data escolhida já está bloqueada.</target>
       </trans-unit>
-      <trans-unit id="SZO4xjC" resname="An absence cannot be booked before your first working day.">
+      <trans-unit id="SZO4xjC" resname="An absence cannot be booked before your first working day." xml:space="preserve">
         <source>An absence cannot be booked before your first working day.</source>
-        <target state="translated">Uma ausência não pode ser marcada antes do seu primeiro dia útil.</target>
+        <target state="needs-translation">Uma ausência não pode ser marcada antes do seu primeiro dia útil.</target>
       </trans-unit>
       <trans-unit id="IN37g5N" resname="Not enough holidays left.">
         <source>Not enough holidays left.</source>
@@ -149,6 +149,10 @@
       <trans-unit id="BztgSSP" resname="The period of absence must not extend beyond the turn of the year.">
         <source>The period of absence must not extend beyond the turn of the year.</source>
         <target state="translated">O período de ausência não se deve estender além da virada do ano.</target>
+      </trans-unit>
+      <trans-unit id="fvxWW3V" resname="The CSRF token is invalid. Please try to resubmit the form." xml:space="preserve">
+        <source>The CSRF token is invalid. Please try to resubmit the form.</source>
+        <target state="translated">Faça favor, tente enviar o formulário. Se o problema persistir, atualize o seu navegador.</target>
       </trans-unit>
     </body>
   </file>

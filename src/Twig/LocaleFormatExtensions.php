@@ -18,8 +18,8 @@ use App\Utils\JavascriptFormatConverter;
 use App\Utils\LocaleFormatter;
 use DateTime;
 use DateTimeInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
+use Twig\DeprecatedCallableInfo;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -30,7 +30,7 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
     private ?LocaleFormatter $formatter = null;
     private ?string $locale = null;
 
-    public function __construct(private LocaleService $localeService, private Security $security)
+    public function __construct(private readonly LocaleService $localeService)
     {
     }
 
@@ -42,7 +42,7 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
             new TwigFilter('date_short', [$this, 'dateShort']),
             new TwigFilter('date_time', [$this, 'dateTime']),
             // cannot be deleted right now, needs to be kept for invoice and export templates
-            new TwigFilter('date_full', [$this, 'dateTime'], ['deprecated' => true, 'alternative' => 'date_time']),
+            new TwigFilter('date_full', [$this, 'dateTime'], ['deprecation_info' => new DeprecatedCallableInfo('Kimai', '2.0', 'date_time')]),
             new TwigFilter('date_format', [$this, 'dateFormat']),
             new TwigFilter('date_weekday', [$this, 'dateWeekday']),
             new TwigFilter('time', [$this, 'time']),
@@ -111,19 +111,13 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
         return $this->locale;
     }
 
-    public function isWeekend(\DateTimeInterface|string|null $dateTime, ?User $user = null): bool
+    public function isWeekend(\DateTimeInterface|string|null $dateTime): bool
     {
         if (!$dateTime instanceof \DateTimeInterface) {
             return false;
         }
 
         $day = (int) $dateTime->format('N');
-
-        /** @var User|null $tmp */
-        $tmp = $user ?? $this->security->getUser();
-        if ($tmp !== null && $tmp->hasWorkHourConfiguration()) {
-            return !$tmp->isWorkDay($dateTime);
-        }
 
         return ($day === 6 || $day === 7);
     }
@@ -173,7 +167,7 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
         }
         $months = [];
         for ($i = 1; $i < 13; $i++) {
-            $months[] = $this->getFormatter()->monthName(new DateTime(sprintf('%s-%s-10', $year, ($i < 10 ? '0' . $i : (string) $i))), $withYear);
+            $months[] = $this->getFormatter()->monthName(new DateTime(\sprintf('%s-%s-10', $year, ($i < 10 ? '0' . $i : (string) $i))), $withYear);
         }
 
         return $months;
@@ -189,18 +183,37 @@ final class LocaleFormatExtensions extends AbstractExtension implements LocaleAw
         return $this->getFormatter()->dayName($dateTime, $short);
     }
 
-    public function getJavascriptConfiguration(User $user): array
+    public function getJavascriptConfiguration(?User $user = null, ?string $language = null): array
     {
+        $browserTitle = false;
+        $id = null;
+        $name = 'anonymous';
+        $admin = false;
+        $superAdmin = false;
+        $timezone = date_default_timezone_get();
+
+        if ($user !== null) {
+            $browserTitle = (bool) $user->getPreferenceValue('update_browser_title');
+            $language ??= $user->getLanguage();
+            $id = $user->getId();
+            $name = $user->getDisplayName();
+            $admin = $user->isAdmin();
+            $superAdmin = $user->isSuperAdmin();
+            $timezone = $user->getTimezone();
+        }
+
+        $language ??= $this->locale ?? User::DEFAULT_LANGUAGE;
+
         return [
             'locale' => $this->locale,
-            'language' => $user->getLanguage(),
+            'language' => $language,
             'formatDuration' => $this->localeService->getDurationFormat($this->locale),
             'formatDate' => $this->localeService->getDateFormat($this->locale),
             'defaultColor' => Constants::DEFAULT_COLOR,
             'twentyFourHours' => $this->localeService->is24Hour($this->locale),
-            'updateBrowserTitle' => (bool) $user->getPreferenceValue('update_browser_title'),
-            'timezone' => $user->getTimezone(),
-            'user' => ['id' => $user->getId(), 'name' => $user->getDisplayName(), 'admin' => $user->isAdmin(), 'superAdmin' => $user->isSuperAdmin()],
+            'updateBrowserTitle' => $browserTitle,
+            'timezone' => $timezone,
+            'user' => ['id' => $id, 'name' => $name, 'admin' => $admin, 'superAdmin' => $superAdmin],
         ];
     }
 

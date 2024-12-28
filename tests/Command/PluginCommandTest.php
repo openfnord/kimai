@@ -10,6 +10,7 @@
 namespace App\Tests\Command;
 
 use App\Command\PluginCommand;
+use App\Plugin\PackageManager;
 use App\Plugin\PluginInterface;
 use App\Plugin\PluginManager;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -32,16 +33,16 @@ class PluginCommandTest extends KernelTestCase
 
         $commandTester = $this->getCommandTester([$plugin1], []);
         $output = $commandTester->getDisplay();
-        $this->assertStringContainsString(__DIR__, $output);
-        $this->assertStringContainsString('Plugin/Fixtures/TestPlugin', $output);
-        $this->assertStringContainsString('TestPlugin from composer.json', $output);
+        self::assertStringContainsString(__DIR__, $output);
+        self::assertStringContainsString('Plugin/Fixtures/TestPlugin', $output);
+        self::assertStringContainsString('TestPlugin from composer.json', $output);
     }
 
     private function getCommandTester(array $plugins, array $options = []): CommandTester
     {
         $kernel = self::bootKernel();
         $this->application = new Application($kernel);
-        $this->application->add(new PluginCommand(new PluginManager($plugins)));
+        $this->application->add(new PluginCommand(new PluginManager($plugins), new PackageManager(__DIR__ . '/../../')));
 
         $command = $this->application->find('kimai:plugins');
         $commandTester = new CommandTester($command);

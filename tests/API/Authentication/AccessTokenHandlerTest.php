@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace API\Authentication;
+namespace App\Tests\API\Authentication;
 
 use App\API\Authentication\AccessTokenHandler;
 use App\Entity\AccessToken;
@@ -55,11 +55,11 @@ class AccessTokenHandlerTest extends TestCase
         $user = new User();
         $user->setUserIdentifier('foo-bar');
         $accessToken = new AccessToken($user, 'Test');
-        $this->assertNull($accessToken->getLastUsage());
+        self::assertNull($accessToken->getLastUsage());
         $sut = $this->getSut($accessToken);
 
         $badge = $sut->getUserBadgeFrom('foo');
-        $this->assertNotNull($accessToken->getLastUsage());
-        $this->assertSame('foo-bar', $badge->getUserIdentifier());
+        self::assertNotNull($accessToken->getLastUsage());
+        self::assertSame('foo-bar', $badge->getUserIdentifier());
     }
 }

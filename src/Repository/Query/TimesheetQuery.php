@@ -42,6 +42,10 @@ class TimesheetQuery extends ActivityQuery implements BillableInterface, DateRan
      * @var array<User>
      */
     private array $users = [];
+    /**
+     * @var array<TimesheetQueryHint>
+     */
+    private array $queryHints = [];
 
     public function __construct(bool $resetTimes = true)
     {
@@ -57,6 +61,27 @@ class TimesheetQuery extends ActivityQuery implements BillableInterface, DateRan
             'users' => [],
             'activities' => [],
         ]);
+    }
+
+    public function addQueryHint(TimesheetQueryHint $hint): void
+    {
+        $this->queryHints[] = $hint;
+    }
+
+    public function hasQueryHint(TimesheetQueryHint $hint): bool
+    {
+        return \in_array($hint, $this->queryHints, true);
+    }
+
+    protected function copyFrom(BaseQuery $query): void
+    {
+        parent::copyFrom($query);
+
+        if ($query instanceof TimesheetQuery) {
+            foreach ($this->getUsers() as $user) {
+                $this->addUser($user);
+            }
+        }
     }
 
     public function getMaxResults(): ?int
@@ -115,18 +140,6 @@ class TimesheetQuery extends ActivityQuery implements BillableInterface, DateRan
     public function setUser(?User $user): void
     {
         $this->timesheetUser = $user;
-    }
-
-    /**
-     * @return array<int>
-     */
-    public function getActivityIds(): array
-    {
-        return array_values(array_filter(array_unique(array_map(function (Activity $activity) {
-            return $activity->getId();
-        }, $this->activities)), function ($id) {
-            return $id !== null;
-        }));
     }
 
     /**

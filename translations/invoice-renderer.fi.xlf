@@ -10,12 +10,10 @@
         <source>help.upload</source>
         <target state="translated">Huomioitavaa: olemassa olevat tiedostot korvataan. Sallitut tiedosto tyypit on: %extensions%.</target>
       </trans-unit>
-      <!-- Optgroups -->
       <trans-unit id="E5BwZHT" resname="programmatic">
         <source>programmatic</source>
         <target state="translated">Jatko käsittelyä varten</target>
       </trans-unit>
-      <!-- Renderer -->
       <trans-unit id="Utbj3k_" resname="invoice">
         <source>invoice</source>
         <target state="translated">Lasku</target>
@@ -35,6 +33,10 @@
       <trans-unit id="m1UyfD9" resname="service-date">
         <source>service-date</source>
         <target state="translated">Freelancer</target>
+      </trans-unit>
+      <trans-unit id="22pt8Gs" resname="download_invoice_renderer" xml:space="preserve">
+        <source>download_invoice_renderer</source>
+        <target state="translated">Voit ladata lisää malleja täältä</target>
       </trans-unit>
     </body>
   </file>

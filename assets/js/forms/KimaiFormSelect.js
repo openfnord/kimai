@@ -10,9 +10,9 @@
  */
 
 import TomSelect from 'tom-select';
-import KimaiFormPlugin from "./KimaiFormPlugin";
+import KimaiFormTomselectPlugin from "./KimaiFormTomselectPlugin";
 
-export default class KimaiFormSelect extends KimaiFormPlugin {
+export default class KimaiFormSelect extends KimaiFormTomselectPlugin {
 
     constructor(selector, apiSelects)
     {
@@ -82,29 +82,19 @@ export default class KimaiFormSelect extends KimaiFormPlugin {
             plugins: plugins,
             // if there are more than X entries, the other ones are hidden and can only be found
             // by typing some characters to trigger the internal option search
+            // see App\Form\Type\TagsType::MAX_AMOUNT_SELECT
             maxOptions: 500,
             sortField:[{field: '$order'}, {field: '$score'}],
         };
 
         let render = {
-            option_create: (data, escape) => {
-                const name = escape(data.input);
-                if (name.length < 3) {
-                    return null;
-                }
-                const tpl = this.translate('select.search.create');
-                const tplReplaced = tpl.replace('%input%', '<strong>' + name + '</strong>');
-                return '<div class="create">' + tplReplaced + '</div>';
-            },
-            no_results: (data, escape) => {
-                const tpl = this.translate('select.search.notfound');
-                const tplReplaced = tpl.replace('%input%', '<strong>' + escape(data.input) + '</strong>');
-                return '<div class="no-results">' + tplReplaced + '</div>';
-            },
             onOptionAdd: (value) => {
                 node.dispatchEvent(new CustomEvent('create', {detail: {'value': value}}));
             },
         };
+
+        const rendererType = (node.dataset['renderer'] !== undefined) ? node.dataset['renderer'] : 'default';
+        options.render = {...render, ...this.getRenderer(rendererType)};
 
         if (node.dataset['create'] !== undefined) {
             options = {...options, ...{
@@ -121,44 +111,6 @@ export default class KimaiFormSelect extends KimaiFormPlugin {
         if (node.dataset.disableSearch !== undefined) {
             options = {...options, ...{
                 controlInput: null,
-            }};
-        }
-
-        if (node.dataset['renderer'] !== undefined && node.dataset['renderer'] === 'color') {
-            options.render = {...render, ...{
-                option: function(data, escape) {
-                    let item = '<div class="list-group-item border-0 p-1 ps-2 text-nowrap">';
-                    if (data.color !== undefined) {
-                        item += '<span style="background-color:' + data.color + '" class="color-choice-item">&nbsp;</span>';
-                    } else {
-                        item += '<span class="color-choice-item">&nbsp;</span>';
-                    }
-                    item += escape(data.text) + '</div>';
-                    return item;
-                },
-                item: function(data, escape) {
-                    let item = '<div class="text-nowrap">';
-                    if (data.color !== undefined) {
-                        item += '<span style="background-color:' + data.color + '" class="color-choice-item">&nbsp;</span>';
-                    } else {
-                        item += '<span class="color-choice-item">&nbsp;</span>';
-                    }
-                    item += escape(data.text) + '</div>';
-                    return item;
-                }
-            }};
-        } else {
-            options.render = {...render, ...{
-                // the empty entry would collapse and only show as a tiny 5px line if there is no content inside
-                option: function(data, escape) {
-                    let text = data.text;
-                    if (text === null || text.trim() === '') {
-                        text = '&nbsp;';
-                    } else {
-                        text = escape(text);
-                    }
-                    return '<div>' + text + '</div>';
-                }
             }};
         }
 
@@ -284,8 +236,13 @@ export default class KimaiFormSelect extends KimaiFormPlugin {
             options.push(optGroup);
         }
 
+        // log the one with a group name first (e.g. non-global activities)
         options.forEach(child => node.appendChild(child));
-        emptyOpts.forEach(child => node.appendChild(child));
+
+        // append the ones with no parent at the end (e.g. global activities)
+        const optGroupEmpty = this._createOptgroup('');
+        emptyOpts.forEach(child => optGroupEmpty.appendChild(child));
+        node.appendChild(optGroupEmpty);
 
         // if available, re-select the previous selected option (mostly usable for global activities)
         node.value = selectedValue;
@@ -483,7 +440,7 @@ export default class KimaiFormSelect extends KimaiFormPlugin {
                     targetSelect.dataset['reloading'] = '0';
                     targetSelect.disabled = false;
                 });
-            }
+            };
 
             document.addEventListener('change', this._eventHandlerApiSelects);
         }
@@ -519,14 +476,14 @@ export default class KimaiFormSelect extends KimaiFormPlugin {
                             newValue = [...targetField.selectedOptions].map(o => o.value);
                         } else if (newValue !== '') {
                             if (targetField.type === 'date') {
-                                const timeId = targetField.id.replace('_date', '_time')
+                                const timeId = targetField.id.replace('_date', '_time');
                                 const timeElement = document.getElementById(timeId);
                                 const time = timeElement === null ? '12:00:00' : timeElement.value;
                                 // using 12:00 as fallback, because timezone handling might change the date if we use 00:00
                                 const newDate = this.getDateUtils().fromHtml5Input(newValue, time);
                                 newValue = this.getDateUtils().formatForAPI(newDate, false);
                             } else if (targetField.type === 'text' && targetField.name.includes('date')) {
-                                const timeId = targetField.id.replace('_date', '_time')
+                                const timeId = targetField.id.replace('_date', '_time');
                                 const timeElement = document.getElementById(timeId);
                                 // using 12:00 as fallback, because timezone handling might change the date if we use 00:00
                                 let time = '12:00:00';

@@ -60,7 +60,7 @@
       </trans-unit>
       <trans-unit id="J258iS6" resname="update_multiple" approved="yes">
         <source>update_multiple</source>
-        <target state="final">%action% %count% voci?</target>
+        <target state="final">%action% %count% voci</target>
       </trans-unit>
       <trans-unit id="OTDmccn" resname="attachments" approved="yes">
         <source>attachments</source>
@@ -74,9 +74,6 @@
         <source>rates.title</source>
         <target state="final">Prezzi</target>
       </trans-unit>
-      <!--
-              Login / Security
-            -->
       <trans-unit id="XohImNo" resname="password" approved="yes">
         <source>Password</source>
         <target state="final">Password</target>
@@ -105,9 +102,6 @@
         <source>login_required</source>
         <target state="final">Autorizzazione mancante. Reindirizzare all'accesso?</target>
       </trans-unit>
-      <!--
-              Menu / Navbar items
-            -->
       <trans-unit id="UoOv6mx" resname="menu.homepage" approved="yes">
         <source>menu.homepage</source>
         <target state="final">Pannello di controllo</target>
@@ -172,9 +166,6 @@
         <source>Doctor</source>
         <target state="final">Medico</target>
       </trans-unit>
-      <!--
-              Error templates
-            -->
       <trans-unit id="Vz3Igj3" resname="error.no_entries_found" approved="yes">
         <source>error.no_entries_found</source>
         <target state="final">Nessuna voce trovata in base ai filtri selezionati.</target>
@@ -183,9 +174,6 @@
         <source>error.no_comments_found</source>
         <target state="final">Non sono stati ancora pubblicati commenti.</target>
       </trans-unit>
-      <!--
-              General labels
-            -->
       <trans-unit id="DodjLNR" resname="date" approved="yes">
         <source>date</source>
         <target state="final">Data</target>
@@ -234,9 +222,9 @@
         <source>budget</source>
         <target state="final">Βudget</target>
       </trans-unit>
-      <trans-unit id="qbD0dHa" resname="timeBudget" approved="yes">
+      <trans-unit id="qbD0dHa" resname="timeBudget" approved="yes" xml:space="preserve">
         <source>timeBudget</source>
-        <target state="final">Budget di tempo</target>
+        <target state="final">Quota oraria</target>
       </trans-unit>
       <trans-unit id="BlGGO.X" resname="activity" approved="yes">
         <source>activity</source>
@@ -310,9 +298,6 @@
         <source>billable</source>
         <target state="final">Fatturabile</target>
       </trans-unit>
-      <!--
-              Buttons & Actions
-            -->
       <trans-unit id="Kw3N1AA" resname="actions" approved="yes">
         <source>actions</source>
         <target state="final">Azioni</target>
@@ -337,16 +322,10 @@
         <source>action.close</source>
         <target state="final">Chiudi</target>
       </trans-unit>
-      <!--
-              Dashboard
-            -->
       <trans-unit id="3bqLM8Q" resname="dashboard.title" approved="yes">
         <source>dashboard.title</source>
         <target state="final">Pannello di controllo</target>
       </trans-unit>
-      <!--
-              Widgets
-            -->
       <trans-unit id="muzkQpM" resname="toggle_dropdown" approved="yes">
         <source>toggle_dropdown</source>
         <target state="final">Mostra menu</target>
@@ -363,9 +342,6 @@
         <source>progress</source>
         <target state="final">Progresso</target>
       </trans-unit>
-      <!--
-              Timesheet
-            -->
       <trans-unit id="VXj0Y3h" resname="timesheet.title" approved="yes">
         <source>timesheet.title</source>
         <target state="final">Il mio tempo</target>
@@ -410,9 +386,6 @@
         <source>append</source>
         <target state="final">Appendi</target>
       </trans-unit>
-      <!--
-              User profile
-            -->
       <trans-unit id="1_wnK76" resname="profile.title" approved="yes">
         <source>profile.title</source>
         <target state="final">Profilo utente</target>
@@ -421,9 +394,9 @@
         <source>profile.about_me</source>
         <target state="final">Su di me</target>
       </trans-unit>
-      <trans-unit id="Fm.kwVn" resname="profile.first_entry" approved="yes">
+      <trans-unit id="Fm.kwVn" resname="profile.first_entry" approved="yes" xml:space="preserve">
         <source>profile.first_entry</source>
-        <target state="final">Lavorando dal</target>
+        <target state="final">Primo giorno lavorativo</target>
       </trans-unit>
       <trans-unit id="1c0EQaz" resname="profile.registration_date" approved="yes">
         <source>profile.registration_date</source>
@@ -461,7 +434,6 @@
         <source>lastLogin</source>
         <target state="final">Ultimo accesso</target>
       </trans-unit>
-      <!-- Options for user-preference calendar_initial_view -->
       <trans-unit id="pcfRcZ4" resname="month" approved="yes">
         <source>month</source>
         <target state="final">Mese</target>
@@ -482,9 +454,6 @@
         <source>export_decimal</source>
         <target state="final">Usa durata decimale nell'esportazione</target>
       </trans-unit>
-      <!--
-              User timesheet calendar
-            -->
       <trans-unit id="UVJ5Die" resname="calendar" approved="yes">
         <source>calendar</source>
         <target state="final">Calendario</target>
@@ -853,9 +822,6 @@
         <source>status.paid</source>
         <target state="final">Pagata</target>
       </trans-unit>
-      <!--
-              Export
-            -->
       <trans-unit id="1GruCMx" resname="export" approved="yes">
         <source>export</source>
         <target state="final">Esporta</target>
@@ -888,9 +854,6 @@
         <source>export.date_copyright</source>
         <target state="final">Creato il %date% con %kimai%</target>
       </trans-unit>
-      <!--
-             Navbar - recent entries and activities
-            -->
       <trans-unit id="OxdYMR3" resname="active.entries" approved="yes">
         <source>active.entries</source>
         <target state="final">Misurazioni del tuo tempo attivo</target>
@@ -903,9 +866,6 @@
         <source>timesheet.start</source>
         <target state="final">Avvia il monitoraggio del tempo</target>
       </trans-unit>
-      <!--
-              TOOLBARS
-            -->
       <trans-unit id="igCkqAP" resname="pageSize" approved="yes">
         <source>pageSize</source>
         <target state="final">Dimensioni pagina</target>
@@ -914,7 +874,7 @@
         <source>entryState</source>
         <target state="final">Registrazioni</target>
       </trans-unit>
-      <trans-unit id="Qn2ouiL" resname="exported" approved="yes">
+      <trans-unit id="Qn2ouiL" resname="exported" approved="yes" xml:space="preserve">
         <source>exported</source>
         <target state="final">Esportate</target>
       </trans-unit>
@@ -1058,8 +1018,8 @@
         <source>stats.amountFinancialYear</source>
         <target state="final">Entrate in quest'anno finanziario</target>
       </trans-unit>
-      <trans-unit id="pX_3dNm" resname="stats.revenue" approved="yes">
-        <source>stats.revenue</source>
+      <trans-unit id="Nx9_QiO" resname="revenue" approved="yes">
+        <source>revenue</source>
         <target state="final">Entrate</target>
       </trans-unit>
       <trans-unit id="BXBFJP8" resname="stats.workingTime" approved="yes" xml:space="preserve">
@@ -1476,7 +1436,7 @@
       </trans-unit>
       <trans-unit id="mS4SSmt" resname="work_times" approved="yes" xml:space="preserve">
         <source>Working times</source>
-        <target state="final">Ore lavorate</target>
+        <target state="final">Orari di lavoro</target>
       </trans-unit>
       <trans-unit id="iaJj4va" resname="work_times_account" approved="yes">
         <source>Account working times</source>
@@ -1488,15 +1448,15 @@
       </trans-unit>
       <trans-unit id="1btzNDa" resname="work_times_should" approved="yes" xml:space="preserve">
         <source>Expected number of hours</source>
-        <target state="final">Numero di ore previsto</target>
+        <target state="final">Ore previste</target>
       </trans-unit>
       <trans-unit id="znIJiOw" resname="manual_bookings.duration_help" approved="yes">
         <source>manual_bookings.duration_help</source>
         <target state="final">La durata può essere sia positiva (aumento dell'is-time) che negativa (riduzione dell'is-time).</target>
       </trans-unit>
-      <trans-unit id="31dFXhR" resname="work_times_is" approved="yes">
+      <trans-unit id="31dFXhR" resname="work_times_is" approved="yes" xml:space="preserve">
         <source>work_times_is</source>
-        <target state="final">Is-ore</target>
+        <target state="final">Ore lavorate</target>
       </trans-unit>
       <trans-unit id="EX27Gdt" resname="created_by" approved="yes">
         <source>created_by</source>
@@ -1521,10 +1481,6 @@
       <trans-unit id="8yqaKzX" resname="confirmed_by_at" approved="yes">
         <source>confirmed_by_at</source>
         <target state="final">Confermato da %user% il %date%</target>
-      </trans-unit>
-      <trans-unit id="uHrZlbq" resname="work_times_result" approved="yes">
-        <source>work_times_result</source>
-        <target state="final">Ore lavorate</target>
       </trans-unit>
       <trans-unit id="wZRRqg0" resname="manual_bookings" approved="yes">
         <source>manual_bookings</source>
@@ -1578,10 +1534,6 @@
         <source>public_holiday.group</source>
         <target state="final">Gruppo ferie</target>
       </trans-unit>
-      <trans-unit id="csAXaBa" resname="button.request" approved="yes">
-        <source>button.request</source>
-        <target state="final">Invia</target>
-      </trans-unit>
       <trans-unit id="Od3xvQK" resname="button.report" approved="yes">
         <source>button.report</source>
         <target state="final">Rapporto</target>
@@ -1606,8 +1558,8 @@
         <source>other</source>
         <target state="final">Altro</target>
       </trans-unit>
-      <trans-unit id="yJg6P3m" resname="holiday.intro" approved="yes">
-        <source>holiday.intro</source>
+      <trans-unit id="yJg6P3m" resname="holiday.intro" approved="yes" xml:space="preserve">
+        <source>You have submitted %used% of your available %days% vacation days so far.</source>
         <target state="final">Finora hai usato %used% dei tuoi %days% giorni di ferie disponibili.</target>
       </trans-unit>
       <trans-unit id="YPO294a" resname="absence_other.intro" approved="yes">
@@ -1682,9 +1634,9 @@
         <source>Custom content</source>
         <target state="final">Contenuti personalizzati</target>
       </trans-unit>
-      <trans-unit id="Nw2x5hI" resname="sickness_child" approved="yes">
-        <source>sickness_child</source>
-        <target state="final">Malattia di un bambino</target>
+      <trans-unit id="Nw2x5hI" resname="sickness_child" approved="yes" xml:space="preserve">
+        <source>Sickness of a relative</source>
+        <target state="final">Malattia di un parente</target>
       </trans-unit>
       <trans-unit id="XE01Ar1" resname="parental" approved="yes">
         <source>parental</source>
@@ -1785,6 +1737,202 @@
       <trans-unit id="IAx_YiA" resname="activate" xml:space="preserve" approved="yes">
         <source>Activate</source>
         <target state="final">Attiva</target>
+      </trans-unit>
+      <trans-unit id="M_WE1pa" resname="booking_allow_only_work_days" xml:space="preserve" approved="yes">
+        <source>booking_allow_only_work_days</source>
+        <target state="final">Consenti l'inserimento delle ore solo per i giorni per i quali le ore previste sono definite nel contratto di lavoro</target>
+      </trans-unit>
+      <trans-unit id="J_teUVB" resname="updated" xml:space="preserve" approved="yes">
+        <source>Updated</source>
+        <target state="final">Aggiornato</target>
+      </trans-unit>
+      <trans-unit id="QG7.sen" resname="created" xml:space="preserve" approved="yes">
+        <source>Created</source>
+        <target state="final">Creato</target>
+      </trans-unit>
+      <trans-unit id="H1i5FFs" resname="request" xml:space="preserve" approved="yes">
+        <source>request</source>
+        <target state="final">Richiedi</target>
+      </trans-unit>
+      <trans-unit id="dOIWgOr" resname="approve" xml:space="preserve" approved="yes">
+        <source>approve</source>
+        <target state="final">Approva</target>
+      </trans-unit>
+      <trans-unit id="2qbRs28" resname="hours_per_day" xml:space="preserve" approved="yes">
+        <source>hours_per_day</source>
+        <target state="final">Ore al giorno</target>
+      </trans-unit>
+      <trans-unit id="07e8ywS" resname="hours_per_month" xml:space="preserve" approved="yes">
+        <source>hours_per_month</source>
+        <target state="final">Ore al mese</target>
+      </trans-unit>
+      <trans-unit id="y7KtuSS" resname="hours_per_week" xml:space="preserve" approved="yes">
+        <source>hours_per_week</source>
+        <target state="final">Ore alla settimana</target>
+      </trans-unit>
+      <trans-unit id="IFT9pou" resname="last_working_day" xml:space="preserve" approved="yes">
+        <source>last_working_day</source>
+        <target state="final">Ultimo giorno lavorativo</target>
+      </trans-unit>
+      <trans-unit id="2pbkbn_" resname="work_hours_mode" xml:space="preserve" approved="yes">
+        <source>work_hours_mode</source>
+        <target state="final">Calcolo dell'orario di lavoro</target>
+      </trans-unit>
+      <trans-unit id="7p_pFHl" resname="work_days" xml:space="preserve" approved="yes">
+        <source>work_days</source>
+        <target state="final">Giorni lavorativi</target>
+      </trans-unit>
+      <trans-unit id="0jvo0RQ" resname="profit" xml:space="preserve" approved="yes">
+        <source>profit</source>
+        <target state="final">Profitto</target>
+      </trans-unit>
+      <trans-unit id="vN5pKOU" resname="costs" xml:space="preserve" approved="yes">
+        <source>costs</source>
+        <target state="final">Costi</target>
+      </trans-unit>
+      <trans-unit id="FOvlalA" resname="break" xml:space="preserve" approved="yes">
+        <source>break</source>
+        <target state="final">Pausa</target>
+      </trans-unit>
+      <trans-unit id="bEXLcqN" resname="stop" approved="yes">
+        <source>stop</source>
+        <target state="final">Ferma</target>
+      </trans-unit>
+      <trans-unit id="PEgjRvN" resname="back" approved="yes">
+        <source>back</source>
+        <target state="final">Indietro</target>
+      </trans-unit>
+      <trans-unit id="JiEhxTc" resname="edit" approved="yes">
+        <source>Edit</source>
+        <target state="final">Modifica</target>
+      </trans-unit>
+      <trans-unit id="4G2jBDS" resname="trash" approved="yes">
+        <source>trash</source>
+        <target state="final">Elimina</target>
+      </trans-unit>
+      <trans-unit id="hF6RgxM" resname="report" approved="yes">
+        <source>report</source>
+        <target state="final">Rapporto</target>
+      </trans-unit>
+      <trans-unit id="JeK2sQZ" resname="repeat" approved="yes">
+        <source>repeat</source>
+        <target state="final">Ricomincia</target>
+      </trans-unit>
+      <trans-unit id="J0sRBY_" resname="profile-stats" approved="yes">
+        <source>profile-stats</source>
+        <target state="final">Profilo</target>
+      </trans-unit>
+      <trans-unit id="zeD7Dew" resname="settings" approved="yes">
+        <source>settings</source>
+        <target state="final">Preferenze</target>
+      </trans-unit>
+      <trans-unit id="anCjtwe" resname="timesheet.filter" approved="yes">
+        <source>Filter timesheets</source>
+        <target state="final">Filtra fogli di presenza</target>
+      </trans-unit>
+      <trans-unit id="xY9_cU2" resname="customer.filter" approved="yes">
+        <source>Filter customers</source>
+        <target state="final">Filtra clienti</target>
+      </trans-unit>
+      <trans-unit id="UFgOnc6" resname="project.filter" approved="yes">
+        <source>Filter projects</source>
+        <target state="final">Filtra progetti</target>
+      </trans-unit>
+      <trans-unit id="5G3QNHA" resname="activity.filter" approved="yes">
+        <source>Filter activities</source>
+        <target state="final">Filtra attività</target>
+      </trans-unit>
+      <trans-unit id="b1pgNOd" resname="copy" approved="yes">
+        <source>copy</source>
+        <target state="final">Crea copia</target>
+      </trans-unit>
+      <trans-unit id="TqFAWIF" resname="home" approved="yes">
+        <source>home</source>
+        <target state="final">Pagina principale</target>
+      </trans-unit>
+      <trans-unit id="PBlIO2x" resname="create-project" approved="yes">
+        <source>create-project</source>
+        <target state="final">Crea progetto</target>
+      </trans-unit>
+      <trans-unit id="UbouFOs" resname="create-activity" approved="yes">
+        <source>create-activity</source>
+        <target state="final">Crea attività</target>
+      </trans-unit>
+      <trans-unit id="QR1nvcR" resname="create-timesheet" approved="yes">
+        <source>create-timesheet</source>
+        <target state="final">Crea foglio di presenza</target>
+      </trans-unit>
+      <trans-unit id="Qh5mV5Q" resname="create-timesheet-multiuser" approved="yes">
+        <source>create-timesheet-multiuser</source>
+        <target state="final">Per più utenti</target>
+      </trans-unit>
+      <trans-unit id="T_PN1AT" resname="permissions" approved="yes">
+        <source>permissions</source>
+        <target state="final">Autorizzazioni team</target>
+      </trans-unit>
+      <trans-unit id="Qf.Yt2r" resname="details" approved="yes">
+        <source>details</source>
+        <target state="final">Mostra</target>
+      </trans-unit>
+      <trans-unit id="aP9j_4L" resname="download" approved="yes">
+        <source>download</source>
+        <target state="final">Download</target>
+      </trans-unit>
+      <trans-unit id="hHIeqOW" resname="invoice.pending" approved="yes">
+        <source>invoice.pending</source>
+        <target state="final">In attesa del pagamento</target>
+      </trans-unit>
+      <trans-unit id="9M4b2ZN" resname="invoice.paid" approved="yes">
+        <source>invoice.paid</source>
+        <target state="final">Fattura pagata</target>
+      </trans-unit>
+      <trans-unit id="38M3a4J" resname="filter" approved="yes">
+        <source>filter</source>
+        <target state="final">Filtra dati</target>
+      </trans-unit>
+      <trans-unit id="SEyZupT" resname="invoice.cancel" approved="yes">
+        <source>invoice.cancel</source>
+        <target state="final">Annulla fattura</target>
+      </trans-unit>
+      <trans-unit id="2cMESs." resname="widget_add" approved="yes">
+        <source>Add widget</source>
+        <target state="final">Aggiungi widget</target>
+      </trans-unit>
+      <trans-unit id="QCf1FUG" resname="reload" approved="yes">
+        <source>reload</source>
+        <target state="final">Ricarica</target>
+      </trans-unit>
+      <trans-unit id="YCc5UoO" resname="widget_remove" approved="yes">
+        <source>Remove widget</source>
+        <target state="final">Rimuovi widget</target>
+      </trans-unit>
+      <trans-unit id="5vJvarK" resname="syncronisation" approved="yes">
+        <source>Synchronization</source>
+        <target state="final">Sincronizzazione</target>
+      </trans-unit>
+      <trans-unit id="2UL2SIZ" resname="import" approved="yes">
+        <source>import</source>
+        <target state="final">Importa</target>
+      </trans-unit>
+      <trans-unit id="pJzNT.n" resname="vcard" approved="yes">
+        <source>vcard</source>
+        <target state="final">Biglietto da visita</target>
+      </trans-unit>
+      <trans-unit id="YzOSTim" resname="status.rejected" xml:space="preserve" approved="yes">
+        <source>status.rejected</source>
+        <target state="final">Rifiutato</target>
+      </trans-unit>
+      <trans-unit id="CE6ZCkm" resname="reject" xml:space="preserve" approved="yes">
+        <source>reject</source>
+        <target state="final">Rifiuta</target>
+      </trans-unit>
+      <trans-unit id="f0kKHXR" resname="sessions_logout" xml:space="preserve" approved="yes">
+        <source>Log out of all devices</source>
+        <target state="final">Disconnettersi da tutti i dispositivi</target>
+      </trans-unit>
+      <trans-unit id="EiWubBr" resname="sessions" xml:space="preserve" approved="yes">
+        <source>Sessions</source>
+        <target state="final">Sessioni</target>
       </trans-unit>
     </body>
   </file>

@@ -35,6 +35,7 @@ final class UserVoter extends Voter
         'hourly-rate',
         'view_team_member',
         'contract',
+        'hours',
         'supervisor',
     ];
 

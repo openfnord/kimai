@@ -19,7 +19,6 @@ use App\Reporting\YearByUser\YearByUser;
 use App\Reporting\YearByUser\YearByUserForm;
 use DateTime;
 use DateTimeInterface;
-use Exception;
 use PhpOffice\PhpSpreadsheet\Reader\Html;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,11 +30,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('report:user')]
 final class UserYearController extends AbstractUserReportController
 {
-    /**
-     * @param Request $request
-     * @return Response
-     * @throws Exception
-     */
     #[Route(path: '/year', name: 'report_user_year', methods: ['GET', 'POST'])]
     public function yearByUser(Request $request, SystemConfiguration $systemConfiguration): Response
     {
@@ -45,7 +39,7 @@ final class UserYearController extends AbstractUserReportController
     #[Route(path: '/year_export', name: 'report_user_year_export', methods: ['GET', 'POST'])]
     public function export(Request $request, SystemConfiguration $systemConfiguration): Response
     {
-        $data = $this->getData($request, $systemConfiguration);
+        $data = $this->getData($request, $systemConfiguration, true);
 
         $content = $this->renderView('reporting/report_by_user_year_export.html.twig', $data);
 
@@ -57,13 +51,14 @@ final class UserYearController extends AbstractUserReportController
         return $writer->getFileResponse($spreadsheet);
     }
 
-    private function getData(Request $request, SystemConfiguration $systemConfiguration): array
+    private function getData(Request $request, SystemConfiguration $systemConfiguration, bool $export = false): array
     {
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory($currentUser);
         $canChangeUser = $this->canSelectUser();
 
         $values = new YearByUser();
+        $values->setDecimal($export);
         $values->setUser($currentUser);
 
         $defaultDate = $dateTimeFactory->createStartOfYear();

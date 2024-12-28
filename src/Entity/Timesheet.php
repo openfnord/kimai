@@ -9,7 +9,9 @@
 
 namespace App\Entity;
 
-use App\Doctrine\ModifiedAt;
+use App\Doctrine\Behavior\ModifiedAt;
+use App\Doctrine\Behavior\ModifiedTrait;
+use App\Repository\TimesheetRepository;
 use App\Validator\Constraints as Constraints;
 use DateTime;
 use DateTimeZone;
@@ -36,7 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['end_time', 'user', 'start_time'], name: 'IDX_TIMESHEET_TICKTAC')]
 #[ORM\Index(columns: ['user', 'project_id', 'activity_id'], name: 'IDX_TIMESHEET_RECENT_ACTIVITIES')]
 #[ORM\Index(columns: ['user', 'id', 'duration'], name: 'IDX_TIMESHEET_RESULT_STATS')]
-#[ORM\Entity(repositoryClass: 'App\Repository\TimesheetRepository')]
+#[ORM\Entity(repositoryClass: TimesheetRepository::class)]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 #[ORM\HasLifecycleCallbacks]
 #[Serializer\ExclusionPolicy('all')]
@@ -48,6 +50,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Constraints\TimesheetDeactivated]
 class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
 {
+    use ModifiedTrait;
+
     /**
      * Category: Normal work-time (default category)
      */
@@ -127,6 +131,8 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     private ?int $duration = 0;
+    #[ORM\Column(name: 'break', type: 'integer', nullable: true)]
+    private ?int $break = 0;
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: '`user`', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
@@ -154,6 +160,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     private ?string $description = null;
     #[ORM\Column(name: 'rate', type: 'float', nullable: false)]
     #[Assert\GreaterThanOrEqual(0)]
+    #[Assert\NotNull]
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     private float $rate = 0.00;
@@ -189,8 +196,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[ORM\Column(name: 'category', type: 'string', length: 10, nullable: false, options: ['default' => 'work'])]
     #[Assert\NotNull]
     private ?string $category = self::WORK;
-    #[ORM\Column(name: 'modified_at', type: 'datetime_immutable', nullable: true)]
-    private \DateTimeImmutable $modifiedAt;
     /**
      * Tags
      *
@@ -199,7 +204,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[ORM\JoinTable(name: 'kimai2_timesheet_tags')]
     #[ORM\JoinColumn(name: 'timesheet_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(name: 'tag_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'timesheets', cascade: ['persist'])]
+    #[ORM\ManyToMany(targetEntity: Tag::class, cascade: ['persist'])]
     #[Assert\Valid]
     private Collection $tags;
     /**
@@ -219,13 +224,11 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     {
         $this->tags = new ArrayCollection();
         $this->meta = new ArrayCollection();
-        $this->modifiedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->setModifiedAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
     }
 
     /**
      * Get entry id, returns null for new entities which were not persisted.
-     *
-     * @return int|null
      */
     public function getId(): ?int
     {
@@ -282,10 +285,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this->end === null;
     }
 
-    /**
-     * @param DateTime $end
-     * @return Timesheet
-     */
     public function setEnd(?DateTime $end): Timesheet
     {
         $this->end = $end;
@@ -300,10 +299,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this;
     }
 
-    /**
-     * @param int|null $duration
-     * @return Timesheet
-     */
     public function setDuration(?int $duration): Timesheet
     {
         $this->duration = $duration;
@@ -313,9 +308,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
 
     /**
      * Do not rely on the results of this method for running records.
-     *
-     * @param bool $calculate
-     * @return int|null
      */
     public function getDuration(bool $calculate = true): ?int
     {
@@ -330,10 +322,20 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     public function getCalculatedDuration(): ?int
     {
         if ($this->begin !== null && $this->end !== null) {
-            return $this->end->getTimestamp() - $this->begin->getTimestamp();
+            return $this->end->getTimestamp() - $this->begin->getTimestamp() - $this->getBreak();
         }
 
         return null;
+    }
+
+    public function getBreak(): int
+    {
+        return $this->break ?? 0;
+    }
+
+    public function setBreak(?int $break): void
+    {
+        $this->break = $break ?? 0;
     }
 
     public function setUser(?User $user): Timesheet
@@ -384,11 +386,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this->description;
     }
 
-    /**
-     * @param float $rate
-     * @return Timesheet
-     */
-    public function setRate($rate): Timesheet
+    public function setRate(float $rate): Timesheet
     {
         $this->rate = $rate;
 
@@ -454,18 +452,11 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         );
     }
 
-    /**
-     * @return bool
-     */
     public function isExported(): bool
     {
         return $this->exported;
     }
 
-    /**
-     * @param bool $exported
-     * @return Timesheet
-     */
     public function setExported(bool $exported): Timesheet
     {
         $this->exported = $exported;
@@ -473,9 +464,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getTimezone(): ?string
     {
         return $this->timezone;
@@ -486,8 +474,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
      * It is reserved for some very rare use-cases.
      *
      * @internal
-     * @param string $timezone
-     * @return Timesheet
      */
     public function setTimezone(string $timezone): Timesheet
     {
@@ -498,8 +484,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
 
     /**
      * This method returns ALWAYS: "timesheet"
-     *
-     * @return string
      */
     public function getType(): string
     {
@@ -521,7 +505,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         $allowed = [self::WORK, self::HOLIDAY, self::SICKNESS, self::PARENTAL, self::OVERTIME];
 
         if (!\in_array($category, $allowed)) {
-            throw new \InvalidArgumentException(sprintf('Invalid timesheet category "%s" given, expected one of: %s', $category, implode(', ', $allowed)));
+            throw new \InvalidArgumentException(\sprintf('Invalid timesheet category "%s" given, expected one of: %s', $category, implode(', ', $allowed)));
         }
 
         $this->category = $category;
@@ -580,16 +564,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this;
     }
 
-    public function getModifiedAt(): \DateTimeImmutable
-    {
-        return $this->modifiedAt;
-    }
-
-    public function setModifiedAt(\DateTimeImmutable $dateTime): void
-    {
-        $this->modifiedAt = $dateTime;
-    }
-
     /**
      * @return Collection|MetaTableTypeInterface[]
      */
@@ -635,6 +609,10 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
 
     public function setMetaField(MetaTableTypeInterface $meta): EntityWithMetaFields
     {
+        // this needs to be done, otherwise doctrine will not see the item as changed
+        // and the calculators will not run
+        $this->setModifiedAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
+
         if (null === ($current = $this->getMetaField($meta->getName()))) {
             $meta->setEntity($this);
             $this->meta->add($meta);
@@ -647,11 +625,9 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this;
     }
 
-    public function createCopy(?Timesheet $timesheet = null): Timesheet
+    public function createCopy(): Timesheet
     {
-        if (null === $timesheet) {
-            $timesheet = new Timesheet();
-        }
+        $timesheet = new Timesheet();
 
         $values = get_object_vars($this);
         foreach ($values as $k => $v) {
@@ -662,7 +638,9 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
 
         /** @var TimesheetMeta $meta */
         foreach ($this->meta as $meta) {
-            $timesheet->setMetaField(clone $meta);
+            $tmp = clone $meta;
+            $tmp->setEntity($timesheet);
+            $timesheet->setMetaField($tmp);
         }
 
         $timesheet->tags = new ArrayCollection();
@@ -681,8 +659,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
             $this->id = null;
         }
 
-        // field will not be set, if it contains a value
-        $this->modifiedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->setModifiedAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
         $this->exported = false;
 
         $currentMeta = $this->meta;

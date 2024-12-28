@@ -17,6 +17,7 @@ use App\Entity\UserPreference;
 use App\Export\Spreadsheet\ColumnDefinition;
 use App\Export\Spreadsheet\Extractor\AnnotationExtractor;
 use App\Tests\Security\TestUserEntity;
+use App\WorkingTime\Mode\WorkingTimeModeDay;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\User\EquatableInterface;
@@ -32,7 +33,7 @@ class UserTest extends TestCase
         $user = new User();
         self::assertInstanceOf(EquatableInterface::class, $user);
         self::assertInstanceOf(UserInterface::class, $user);
-        $this->assertInstanceOf(ArrayCollection::class, $user->getPreferences());
+        self::assertInstanceOf(ArrayCollection::class, $user->getPreferences());
         self::assertNull($user->getTitle());
         self::assertNull($user->getAvatar());
         self::assertNull($user->getAlias());
@@ -40,7 +41,6 @@ class UserTest extends TestCase
         self::assertNull($user->getAccountNumber());
         self::assertNull($user->getApiToken());
         self::assertNull($user->getPlainApiToken());
-        self::assertNull($user->getPasswordRequestedAt());
         self::assertFalse($user->hasTotpSecret());
         self::assertNull($user->getTotpSecret());
         self::assertEquals(User::DEFAULT_LANGUAGE, $user->getLanguage());
@@ -49,6 +49,7 @@ class UserTest extends TestCase
         self::assertFalse($user->canSeeAllData());
         self::assertFalse($user->isExportDecimal());
         self::assertFalse($user->isSystemAccount());
+        self::assertFalse($user->isPasswordRequestNonExpired(3599));
 
         $user->setUserIdentifier('foo');
         self::assertEquals('foo', $user->getUserIdentifier());
@@ -74,13 +75,6 @@ class UserTest extends TestCase
         $user->setAccountNumber('A-058375');
         self::assertEquals('A-058375', $user->getAccountNumber());
 
-        self::assertEquals(0, $user->getWorkHoursMonday());
-        self::assertEquals(0, $user->getWorkHoursTuesday());
-        self::assertEquals(0, $user->getWorkHoursWednesday());
-        self::assertEquals(0, $user->getWorkHoursThursday());
-        self::assertEquals(0, $user->getWorkHoursFriday());
-        self::assertEquals(0, $user->getWorkHoursSaturday());
-        self::assertEquals(0, $user->getWorkHoursSunday());
         self::assertEquals(0, $user->getHolidaysPerYear());
         self::assertFalse($user->hasWorkHourConfiguration());
         self::assertNull($user->getPublicHolidayGroup());
@@ -88,9 +82,22 @@ class UserTest extends TestCase
         self::assertNull($user->getSupervisor());
     }
 
+    /**
+     * @deprecated
+     * @group legacy
+     */
     public function testWorkContract(): void
     {
         $user = new User();
+
+        self::assertEquals(0, $user->getWorkHoursMonday());
+        self::assertEquals(0, $user->getWorkHoursTuesday());
+        self::assertEquals(0, $user->getWorkHoursWednesday());
+        self::assertEquals(0, $user->getWorkHoursThursday());
+        self::assertEquals(0, $user->getWorkHoursFriday());
+        self::assertEquals(0, $user->getWorkHoursSaturday());
+        self::assertEquals(0, $user->getWorkHoursSunday());
+        self::assertFalse($user->hasWorkHourConfiguration());
 
         $monday = new \DateTime('2023-05-08 12:00:00', new \DateTimeZone('Europe/Berlin'));
         $tuesday = new \DateTime('2023-05-09 12:00:00', new \DateTimeZone('Europe/Berlin'));
@@ -107,6 +114,8 @@ class UserTest extends TestCase
         self::assertFalse($user->isWorkDay($friday));
         self::assertFalse($user->isWorkDay($saturday));
         self::assertFalse($user->isWorkDay($sunday));
+
+        $user->setWorkContractMode(WorkingTimeModeDay::ID);
 
         $user->setWorkHoursMonday(7200);
         self::assertTrue($user->hasWorkHourConfiguration());
@@ -216,20 +225,6 @@ class UserTest extends TestCase
         $user = new User();
         $user->setRegisteredAt($date);
         self::assertEquals($date, $user->getRegisteredAt());
-    }
-
-    public function testPasswordRequestedAt(): void
-    {
-        $date = new \DateTimeImmutable('-60 minutes');
-        $sut = new User();
-        self::assertFalse($sut->isPasswordRequestNonExpired(3599));
-
-        self::assertNull($sut->getPasswordRequestedAt());
-        $sut->setPasswordRequestedAt($date);
-        self::assertEquals($date, $sut->getPasswordRequestedAt());
-        self::assertFalse($sut->isPasswordRequestNonExpired(3599));
-        // 10 seconds just to make sure it doesn't expire by accident
-        self::assertTrue($sut->isPasswordRequestNonExpired(3610));
     }
 
     public function testPreferences(): void
@@ -509,6 +504,14 @@ class UserTest extends TestCase
         self::assertFalse($sut2->isEqualTo($sut));
 
         $sut2->setUserIdentifier('12345678');
+        self::assertTrue($sut->isEqualTo($sut2));
+        self::assertTrue($sut2->isEqualTo($sut));
+
+        self::assertFalse($sut->isEnabled());
+        $sut->setEnabled(true);
+        self::assertFalse($sut->isEqualTo($sut2));
+        self::assertFalse($sut2->isEqualTo($sut));
+        $sut2->setEnabled(true);
         self::assertTrue($sut->isEqualTo($sut2));
         self::assertTrue($sut2->isEqualTo($sut));
     }

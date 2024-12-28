@@ -26,7 +26,7 @@ use Symfony\Component\Intl\Locales;
  *
  * @codeCoverageIgnore
  */
-#[AsCommand(name: 'kimai:reset:locales')]
+#[AsCommand(name: 'kimai:reset:locales', description: 'Regenerate the locale definition file')]
 final class RegenerateLocalesCommand extends Command
 {
     /**
@@ -39,13 +39,19 @@ final class RegenerateLocalesCommand extends Command
      *
      * @var string[]
      */
-    private array $noRegionCode = ['ar', 'id', 'pa', 'sl'];
+    private array $noRegionCode = ['ar', 'id', 'pa', 'sl', 'ca'];
     /**
-     * A list of locales that will be activated, not matter if translation files exist for them.
+     * A list of locales that will be activated, no matter if translation files exist for them.
      *
      * @var string[]
      */
     private array $addLocaleToList = ['zh_Hant_TW'];
+    /**
+     * A list of locales that will NOT be activated, as no translations exist by now.
+     *
+     * @var string[]
+     */
+    private array $skipLocale = ['ca'];
 
     public function __construct(
         private readonly string $projectDirectory,
@@ -58,11 +64,6 @@ final class RegenerateLocalesCommand extends Command
     public function isEnabled(): bool
     {
         return $this->kernelEnvironment !== 'prod';
-    }
-
-    protected function configure(): void
-    {
-        $this->setDescription('Regenerate the locale definition file');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -78,7 +79,11 @@ final class RegenerateLocalesCommand extends Command
         }
         $firstLevelLocales = [];
         foreach ($translationFilenames as $file) {
-            $firstLevelLocales[] = explode('.', basename($file))[1];
+            $l = explode('.', basename($file))[1];
+            if (\in_array($l, $this->skipLocale, true)) {
+                continue;
+            }
+            $firstLevelLocales[] = $l;
         }
         $firstLevelLocales = array_unique(array_merge($firstLevelLocales, $this->addLocaleToList));
         $io->title('First level locales found');
@@ -126,7 +131,15 @@ final class RegenerateLocalesCommand extends Command
             $shortTime = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::SHORT);
 
             $settings['date'] = $shortDate->getPattern();
+            if ($settings['date'] === false) {
+                $io->error('Invalid date pattern for locale: ' . $locale);
+                continue;
+            }
             $settings['time'] = $shortTime->getPattern();
+            if ($settings['time'] === false) {
+                $io->error('Invalid time pattern for locale: ' . $locale);
+                continue;
+            }
 
             // see https://github.com/kimai/kimai/issues/4402 - Korean time format failed parsing
             // special case when time pattern starts with A / a => this will lead to an error
@@ -185,8 +198,8 @@ final class RegenerateLocalesCommand extends Command
 
         // in the future this list should be reduced to the list of available translations, but for a long time users
         // could choose from the entire list of all locales, so we likely have to keep that forever ...
-        $io->title('List of app_locales for services.yaml');
-        $io->writeln(implode('|', $locales));
+        $io->title('List of "kimai_locales" for services.yaml');
+        $io->writeln("['" . implode("', '", $locales) . "']");
 
         ksort($appLocales);
 

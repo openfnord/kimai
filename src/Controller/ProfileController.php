@@ -15,6 +15,7 @@ use App\Entity\UserPreference;
 use App\Event\PrepareUserEvent;
 use App\Form\AccessTokenForm;
 use App\Form\Model\TotpActivation;
+use App\Form\Model\UserContractModel;
 use App\Form\UserApiPasswordType;
 use App\Form\UserContractType;
 use App\Form\UserEditType;
@@ -39,6 +40,7 @@ use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -72,7 +74,12 @@ final class ProfileController extends AbstractController
 
     #[Route(path: '/{username}', name: 'user_profile', methods: ['GET'])]
     #[IsGranted('view', 'profile')]
-    public function indexAction(User $profile, TimesheetRepository $repository, TimesheetStatisticService $statisticService): Response
+    public function indexAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        TimesheetRepository $repository,
+        TimesheetStatisticService $statisticService
+    ): Response
     {
         $dateFactory = $this->getDateTimeFactory();
         $userStats = $repository->getUserStatistics($profile);
@@ -104,7 +111,12 @@ final class ProfileController extends AbstractController
 
     #[Route(path: '/{username}/edit', name: 'user_profile_edit', methods: ['GET', 'POST'])]
     #[IsGranted('edit', 'profile')]
-    public function editAction(User $profile, Request $request, UserRepository $userRepository): Response
+    public function editAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserRepository $userRepository
+    ): Response
     {
         $form = $this->createEditForm($profile);
         $form->handleRequest($request);
@@ -133,7 +145,12 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/password', name: 'user_profile_password', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('password', 'profile')]
-    public function passwordAction(User $profile, Request $request, UserService $userService): Response
+    public function passwordAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserService $userService
+    ): Response
     {
         $form = $this->createPasswordForm($profile);
         $form->handleRequest($request);
@@ -157,7 +174,12 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/create-access-token', name: 'user_profile_access_token', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('api-token', 'profile')]
-    public function createAccessToken(User $profile, Request $request, AccessTokenRepository $accessTokenRepository): Response
+    public function createAccessToken(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        AccessTokenRepository $accessTokenRepository
+    ): Response
     {
         $accessToken = new AccessToken($profile, substr(bin2hex(random_bytes(100)), 0, 25));
 
@@ -186,7 +208,13 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/api-token', name: 'user_profile_api_token', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('api-token', 'profile')]
-    public function apiTokenAction(User $profile, Request $request, UserService $userService, AccessTokenRepository $accessTokenRepository): Response
+    public function apiTokenAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserService $userService,
+        AccessTokenRepository $accessTokenRepository
+    ): Response
     {
         $form = $this->createForm(UserApiPasswordType::class, $profile, [
             'action' => $this->generateUrl('user_profile_api_token', ['username' => $profile->getUserIdentifier()]),
@@ -233,7 +261,12 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/roles', name: 'user_profile_roles', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('roles', 'profile')]
-    public function rolesAction(User $profile, Request $request, UserRepository $userRepository): Response
+    public function rolesAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserRepository $userRepository
+    ): Response
     {
         $isSuperAdmin = $profile->isSuperAdmin();
 
@@ -265,9 +298,14 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/contract', name: 'user_profile_contract', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('contract', 'profile')]
-    public function contractAction(User $profile, Request $request, UserRepository $userRepository): Response
+    public function contractAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserRepository $userRepository
+    ): Response
     {
-        $form = $this->createForm(UserContractType::class, $profile, [
+        $form = $this->createForm(UserContractType::class, new UserContractModel($profile), [
             'action' => $this->generateUrl('user_profile_contract', ['username' => $profile->getUserIdentifier()]),
             'method' => 'POST',
         ]);
@@ -291,7 +329,13 @@ final class ProfileController extends AbstractController
 
     #[Route(path: '/{username}/teams', name: 'user_profile_teams', methods: ['GET', 'POST'])]
     #[IsGranted('teams', 'profile')]
-    public function teamsAction(User $profile, Request $request, UserRepository $userRepository, TeamRepository $teamRepository): Response
+    public function teamsAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserRepository $userRepository,
+        TeamRepository $teamRepository
+    ): Response
     {
         $originalMembers = new ArrayCollection();
         foreach ($profile->getMemberships() as $member) {
@@ -327,7 +371,13 @@ final class ProfileController extends AbstractController
 
     #[Route(path: '/{username}/prefs', name: 'user_profile_preferences', methods: ['GET', 'POST'])]
     #[IsGranted('preferences', 'profile')]
-    public function preferencesAction(User $profile, Request $request, EventDispatcherInterface $dispatcher, UserRepository $userRepository): Response
+    public function preferencesAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        EventDispatcherInterface $dispatcher,
+        UserRepository $userRepository
+    ): Response
     {
         // we need to prepare the user preferences, which is done via an EventSubscriber
         $event = new PrepareUserEvent($profile, false);
@@ -448,7 +498,13 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/2fa', name: 'user_profile_2fa', methods: ['GET', 'POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('2fa', 'profile')]
-    public function twoFactorAction(User $profile, Request $request, UserService $userService, TotpAuthenticatorInterface $totpAuthenticator): Response
+    public function twoFactorAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserService $userService,
+        TotpAuthenticatorInterface $totpAuthenticator
+    ): Response
     {
         if (!$profile->hasTotpSecret()) {
             $profile->setTotpSecret($totpAuthenticator->generateSecret());
@@ -508,7 +564,12 @@ final class ProfileController extends AbstractController
     #[Route(path: '/{username}/2fa_deactivate', name: 'user_profile_2fa_deactivate', methods: ['POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('2fa', 'profile')]
-    public function deactivateTwoFactorAction(User $profile, Request $request, UserService $userService, TotpAuthenticatorInterface $totpAuthenticator): Response
+    public function deactivateTwoFactorAction(
+        #[MapEntity(mapping: ['username' => 'username'])]
+        User $profile,
+        Request $request,
+        UserService $userService
+    ): Response
     {
         if ($profile->hasTotpSecret()) {
             $form = $this->getTwoFactorDeactivationForm($profile);

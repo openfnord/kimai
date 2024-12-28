@@ -14,7 +14,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import bootstrap5Plugin, { BootstrapTheme } from '@fullcalendar/bootstrap5';
 import googlePlugin from '@fullcalendar/google-calendar';
-import iCalendarPlugin from '@fullcalendar/icalendar'
+import iCalendarPlugin from '@fullcalendar/icalendar';
 import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
 import arLocale from '@fullcalendar/core/locales/ar';
 import csLocale from '@fullcalendar/core/locales/cs';
@@ -109,12 +109,11 @@ export default class KimaiCalendar {
             nextYear: this.options['icons']['nextYear'],
         };
         BootstrapTheme.prototype.rtlIconClasses = {
-            prev: this.options['icons']['next'],
-            next: this.options['icons']['previous'],
-            prevYear: this.options['icons']['nextYear'],
-            nextYear: this.options['icons']['previousYear'],
+            prev: this.options['icons']['previous'],
+            next: this.options['icons']['next'],
+            prevYear: this.options['icons']['previousYear'],
+            nextYear: this.options['icons']['nextYear'],
         };
-
         let calendarOptions = {
             locales: [ enGbLocale, enUsLocale, arLocale, csLocale, daLocale, deLocale, deAtLocale, elLocale,
                 esLocale, euLocale, faLocale, fiLocale, frLocale, heLocale, hrLocale, huLocale, itLocale, jaLocale, koLocale,
@@ -265,7 +264,7 @@ export default class KimaiCalendar {
                             contextMenu.createFromApi(jsEvent, result);
                         }, (e) => { console.log('Failed to load actions for context menu', e); });
                     }
-                })
+                });
             },
         };
 
@@ -410,13 +409,13 @@ export default class KimaiCalendar {
                         this.hidePopover(info.el);
                     },
                     eventDrop: (eventDropInfo) => {
-                        this.changeHandler(eventDropInfo)
+                        this.changeHandler(eventDropInfo);
                     },
                     eventResizeStart: (info) => {
                         this.hidePopover(info.el);
                     },
                     eventResize: (eventResizeInfo) => {
-                        this.changeHandler(eventResizeInfo)
+                        this.changeHandler(eventResizeInfo);
                     },
                 }};
             }
@@ -569,7 +568,7 @@ export default class KimaiCalendar {
                 color = apiItem.project.customer.color;
             }
         }
-        if (color == null) {
+        if (color === null) {
             color = defaultColor;
         }
 

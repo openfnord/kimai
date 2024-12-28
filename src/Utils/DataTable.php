@@ -29,7 +29,10 @@ final class DataTable implements \Countable, \IteratorAggregate
     private bool $sticky = true;
     private ?string $paginationRoute = null;
 
-    public function __construct(private string $tableName, private BaseQuery $query)
+    public function __construct(
+        private readonly string $tableName,
+        private readonly BaseQuery $query
+    )
     {
     }
 
@@ -85,13 +88,12 @@ final class DataTable implements \Countable, \IteratorAggregate
 
     /**
      * @param FormInterface<MultiUpdateTableDTO>|null $batchForm
-     * @return void
      */
     public function setBatchForm(?FormInterface $batchForm): void
     {
         $this->batchForm = $batchForm;
 
-        if (!\array_key_exists('id', $this->columns)) {
+        if ($batchForm !== null && !\array_key_exists('id', $this->columns)) {
             $this->addColumn('id', [
                 'class' => 'alwaysVisible multiCheckbox',
                 'orderBy' => false,

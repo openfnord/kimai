@@ -11,7 +11,6 @@ namespace App\Tests\WorkingTime\Model;
 
 use App\Entity\User;
 use App\Entity\WorkingTime;
-use App\WorkingTime\Model\Day;
 use App\WorkingTime\Model\Month;
 use PHPUnit\Framework\TestCase;
 
@@ -29,9 +28,9 @@ class MonthTest extends TestCase
         foreach($months as $key => $days) {
             $index = ++$key;
             $monthKey = ($index < 10) ? '0' . $index : $index;
-            $date = new \DateTimeImmutable(sprintf('2020-%s-25 13:00:00', $monthKey));
+            $date = new \DateTimeImmutable(\sprintf('2020-%s-25 13:00:00', $monthKey));
             $month = new Month($date, $user);
-            self::assertEquals(sprintf('2020-%s-25', $monthKey), $month->getMonth()->format('Y-m-d'));
+            self::assertEquals(\sprintf('2020-%s-25', $monthKey), $month->getMonth()->format('Y-m-d'));
             self::assertCount($days, $month->getDays());
             self::assertFalse($month->isLocked());
             self::assertEquals(0, $month->getActualTime());
@@ -39,7 +38,6 @@ class MonthTest extends TestCase
             self::assertNull($month->getLockDate());
             self::assertNull($month->getLockedBy());
             foreach ($month->getDays() as $day) {
-                self::assertInstanceOf(Day::class, $day);
                 self::assertNull($day->getWorkingTime());
 
                 $duration = rand(0, 28000);
