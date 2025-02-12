@@ -11,18 +11,24 @@ namespace App\Export\Base;
 
 use App\Entity\ExportableItem;
 use App\Export\ExportFilename;
+use App\Export\Package\CellFormatter\DateStringFormatter;
 use App\Export\Package\SpoutSpreadsheet;
 use App\Export\RendererInterface;
 use App\Export\TimesheetExportInterface;
 use App\Repository\Query\TimesheetQuery;
+use OpenSpout\Writer\CSV\Options;
 use OpenSpout\Writer\CSV\Writer;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class CsvRenderer implements RendererInterface, TimesheetExportInterface
 {
     use ExportTrait;
 
-    public function __construct(private readonly SpreadsheetRenderer $spreadsheetRenderer)
+    public function __construct(
+        private readonly SpreadsheetRenderer $spreadsheetRenderer,
+        private readonly TranslatorInterface $translator
+    )
     {
     }
 
@@ -58,9 +64,13 @@ final class CsvRenderer implements RendererInterface, TimesheetExportInterface
             throw new \Exception('Could not open temporary file');
         }
 
-        $spreadsheet = new SpoutSpreadsheet(new Writer());
+        $options = new Options();
+        $options->SHOULD_ADD_BOM = false;
+
+        $spreadsheet = new SpoutSpreadsheet(new Writer($options), $this->translator);
         $spreadsheet->open($filename);
 
+        $this->spreadsheetRenderer->registerFormatter('date', new DateStringFormatter());
         $this->spreadsheetRenderer->writeSpreadsheet($spreadsheet, $exportItems, $query);
 
         return new \SplFileInfo($filename);

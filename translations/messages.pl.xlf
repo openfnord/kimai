@@ -1782,18 +1782,6 @@
         <source>Filter timesheets</source>
         <target state="translated">Filtruj ewidencję pomiarów</target>
       </trans-unit>
-      <trans-unit id="xY9_cU2" resname="customer.filter">
-        <source>Filter customers</source>
-        <target state="translated">Filtruj klientów</target>
-      </trans-unit>
-      <trans-unit id="UFgOnc6" resname="project.filter">
-        <source>Filter projects</source>
-        <target state="translated">Filtruj projekty</target>
-      </trans-unit>
-      <trans-unit id="5G3QNHA" resname="activity.filter">
-        <source>Filter activities</source>
-        <target state="translated">Filtruj aktywności</target>
-      </trans-unit>
       <trans-unit id="b1pgNOd" resname="copy">
         <source>copy</source>
         <target>Utwórz kopię</target>
@@ -1899,8 +1887,8 @@
         <target state="translated">Zezwalaj na wpisy czasu tylko dla dni, dla których przewidywane godziny pracy są określone w umowie o pracę</target>
       </trans-unit>
       <trans-unit id="YzOSTim" resname="status.rejected" xml:space="preserve">
-        <source>status.rejected</source>
-        <target state="translated">Odrzucone</target>
+        <source>Rejected</source>
+        <target state="needs-translation">Odrzucone</target>
       </trans-unit>
       <trans-unit id="0jvo0RQ" resname="profit" xml:space="preserve">
         <source>profit</source>

@@ -1830,18 +1830,6 @@
         <source>Filter timesheets</source>
         <target>Horários</target>
       </trans-unit>
-      <trans-unit id="xY9_cU2" resname="customer.filter">
-        <source>Filter customers</source>
-        <target>Filtrar clientes</target>
-      </trans-unit>
-      <trans-unit id="UFgOnc6" resname="project.filter">
-        <source>Filter projects</source>
-        <target>Filtrar projetos</target>
-      </trans-unit>
-      <trans-unit id="5G3QNHA" resname="activity.filter">
-        <source>Filter activities</source>
-        <target>Filtrar atividades</target>
-      </trans-unit>
       <trans-unit id="b1pgNOd" resname="copy">
         <source>copy</source>
         <target>Criar cópia</target>
@@ -1919,7 +1907,7 @@
         <target state="translated">Importar</target>
       </trans-unit>
       <trans-unit id="YzOSTim" resname="status.rejected" xml:space="preserve" approved="no">
-        <source>status.rejected</source>
+        <source>Rejected</source>
         <target state="translated">Rejeitado</target>
       </trans-unit>
       <trans-unit id="CE6ZCkm" resname="reject" xml:space="preserve" approved="no">
@@ -1933,6 +1921,14 @@
       <trans-unit id="f0kKHXR" resname="sessions_logout" xml:space="preserve">
         <source>Log out of all devices</source>
         <target state="translated">Fazer logout de todos os dispositivos</target>
+      </trans-unit>
+      <trans-unit id="9qIU96X" resname="result" xml:space="preserve" approved="no">
+        <source>result</source>
+        <target state="translated">Resultado</target>
+      </trans-unit>
+      <trans-unit id="wvt4jH3" resname="training" xml:space="preserve" approved="no">
+        <source>training</source>
+        <target state="translated">Treinamento</target>
       </trans-unit>
     </body>
   </file>
